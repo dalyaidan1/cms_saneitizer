@@ -1,5 +1,5 @@
 const fs = require('fs')
-const { resolve } = require('path')
+const sanitize = require('./pageSanitizer')
 
 const pageTracker = {nodes:[]}
 let domainHome = ""
@@ -7,6 +7,9 @@ let domainHome = ""
 async function setNewTrackerNodeFromPage(page){
 	const url = await page.url()
 	const newID = findMaxNodeID()+1
+	let sanitizedContent = sanitize(
+		await page.$eval('body', content => content.innerHTML)
+		)
 	pageTracker[removeDomainFromURL(url)] = {
 		"id" : newID,
 		"url":url,
@@ -14,7 +17,7 @@ async function setNewTrackerNodeFromPage(page){
 		"sanitized": false,
 		"children": [],
 		"title":"",
-		"content":await page.$eval('body', content => content.innerHTML),	
+		"content":sanitizedContent,	
 	}
 	pageTracker.nodes.push(newID)
 }
@@ -22,8 +25,11 @@ async function setNewTrackerNodeFromPage(page){
 async function updateTrackerNodeFromPage(page){
 	const url = await page.url()
 	const key = removeDomainFromURL(url)
+	let sanitizedContent = sanitize(
+		await page.$eval('body', content => content.innerHTML)
+		)
 	pageTracker[key].occurrences +=1
-	pageTracker[key].content = await page.$eval('body', content => content.innerHTML)
+	pageTracker[key].content = sanitizedContent
 }
 
 async function setNewTrackerNodeFromURL(url){
