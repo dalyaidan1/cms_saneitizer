@@ -19,6 +19,7 @@
   "homepage": "https://github.com/dalyaidan1/cms_saneitizer#readme",
   "dependencies": {
     "@mozilla/readability": "^0.4.1",
+    "dotenv": "^16.0.0",
     "jsdom": "^19.0.0",
     "puppeteer": "^13.1.1"
   }
