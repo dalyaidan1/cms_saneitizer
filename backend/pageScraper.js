@@ -1,12 +1,14 @@
 const fs = require('fs')
+const { resolve } = require('path')
 
 const pageTracker = {nodes:[]}
 let domainHome = ""
 
 async function setNewTrackerNodeFromPage(page){
 	const url = await page.url()
+	const newID = findMaxNodeID()+1
 	pageTracker[removeDomainFromURL(url)] = {
-		"id" : findMaxNodeID()+1,
+		"id" : newID,
 		"url":url,
 		"occurrences": 1,
 		"sanitized": false,
@@ -14,12 +16,20 @@ async function setNewTrackerNodeFromPage(page){
 		"title":"",
 		"content":await page.$eval('body', content => content.innerHTML),	
 	}
-	return
+	pageTracker.nodes.push(newID)
+}
+
+async function updateTrackerNodeFromPage(page){
+	const url = await page.url()
+	const key = removeDomainFromURL(url)
+	pageTracker[key].occurrences +=1
+	pageTracker[key].content = await page.$eval('body', content => content.innerHTML)
 }
 
 async function setNewTrackerNodeFromURL(url){
+	const newID = findMaxNodeID()+1
 	pageTracker[removeDomainFromURL(url)] = {
-		"id" : findMaxNodeID+1,
+		"id" : newID,
 		"url": url,
 		"occurrences": 1,
 		"sanitized": false,
@@ -27,6 +37,7 @@ async function setNewTrackerNodeFromURL(url){
 		"title":"",
 		"content":"",	
 	}
+	pageTracker.nodes.push(newID)
 }
 
 // each node in the tracker has an id, find the highest one
@@ -34,7 +45,7 @@ const findMaxNodeID = () =>{
 	if (pageTracker.nodes.length === 0){
 		return 0
 	}
-	return Math.max(pageTracker.nodes)
+	return Math.max(...pageTracker.nodes)
 }
 
 // regex a url to remove the domain, so key lookup is a tiny bit faster and less cluttered
@@ -65,35 +76,46 @@ const scraperObject = {
 			// navigate to the selected page
 			await page.goto(url)
 			// wait for content to load
-			page.waitForNetworkIdle()
+			await page.waitForNetworkIdle()
 
-			if (isURLNewNode(url)){
+			const parentURLKey = url === domainHome ? "/" : removeDomainFromURL(url)
+
+			if (isURLNewNode(parentURLKey)){
 				setNewTrackerNodeFromPage(page)
-			}
+			} else {
+				updateTrackerNodeFromPage(page)
+			}			
 			
-			const parentURLKey = removeDomainFromURL(url)
-
-			// make each url a new node...
 			// scape all anchors on the page
 			let urls = await page.$$eval('a', anchors => {
-				// extract the urls from the data
+				// set the return array that will be scraped on this recursion
 				anchors = anchors.map(
 					anchor => {
-						const thisUrlKey = removeDomainFromURL(anchor.href)
-						
-						if (isURLNewNode(anchor.href)){
-							setNewTrackerNodeFromURL(anchor.href)
-						} else {
-							pageTracker[thisUrlKey].occurrences += 1							
-						}
-						pageTracker[parentURLKey].children.push(pageTracker[thisUrlKey].id)
 						return anchor.href
 					}
 				)
+				return anchors
 			})
 
+			// remove duplicates
+			urls = Array.from(new Set(urls));
+
+			// make each url a new node...
+			for (let url of urls){
+				const thisUrlKey = removeDomainFromURL(url)						
+				if (isURLNewNode(url)){
+					setNewTrackerNodeFromURL(url)
+				} else {
+					pageTracker[thisUrlKey].occurrences += 1							
+				}
+				pageTracker[parentURLKey].children.push(pageTracker[thisUrlKey].id)
+			}
+
 			for(let url in urls){
-				return await scrapeCurrentPage(url)
+				if (pageTracker[removeDomainFromURL(urls[url])].content.length === 0){
+					return await scrapeCurrentPage(urls[url])
+				}
+				
 			}
 			// if (allUrlsAccountedFor()){
 			// 	return true

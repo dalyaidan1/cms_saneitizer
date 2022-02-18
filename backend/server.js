@@ -7,6 +7,8 @@ let browserInstance = browserObject.startBrowser()
 // Pass the browser instance to the scraper controller
 scraperController(browserInstance)
 
+const listOfLinks = require("./listOfLinks.json")
+console.log(Object.keys(listOfLinks).length)
 // const puppeteer = require('puppeteer')
 // const { Readability } = require('@mozilla/readability')
 // const { JSDOM } = require('jsdom')

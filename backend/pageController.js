@@ -6,7 +6,11 @@ async function scrapeAll(browserInstance){
 	let browser
 	try{
 		browser = await browserInstance
-		await pageScraper.scraper(browser, domainHome)	
+		const timeStart = Date.now()
+		await pageScraper.scraper(browser, domainHome)
+		await browser.close()
+		const timeEnd = Date.now()
+		console.log(Math.floor((timeStart - timeEnd) / 1000))
 		
 	}
 	catch(err){
