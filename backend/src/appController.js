@@ -1,5 +1,6 @@
 const pageScraper = require('./scraper/pageScraper')
 const DatabaseAccessor = require('./database/databaseAccessor')
+const treeConnector = require('./sanitizer/treeConnector')
 
 // TODO make sure that it does not have a "/" at the end
 const domainHome = 'http://books.toscrape.com'
@@ -18,7 +19,7 @@ async function scrapeAll(browserInstance, databaseDriver){
 		await browser.close()
 
 		// clean up page structure for navigation and exporting
-		
+		await treeConnector.parseLayers(databaseAccessor)
 
 		// close database driver
 		databaseDriver.close()
