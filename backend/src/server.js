@@ -1,6 +1,6 @@
-const browserObject = require('./browser')
-const scraperController = require('./pageController')
-const driver = require('./neo4jDriver')
+const browserObject = require('./scraper/browser')
+const scraperController = require('./appController')
+const driver = require('./database/neo4jDriver')
 
 //Start the browser and create a browser instance
 let browserInstance = browserObject.startBrowser()

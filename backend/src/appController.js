@@ -1,5 +1,5 @@
-const pageScraper = require('./pageScraper')
-const DatabaseAccessor = require('./databaseAccessor')
+const pageScraper = require('./scraper/pageScraper')
+const DatabaseAccessor = require('./database/databaseAccessor')
 
 // TODO make sure that it does not have a "/" at the end
 const domainHome = 'http://books.toscrape.com'
@@ -16,6 +16,9 @@ async function scrapeAll(browserInstance, databaseDriver){
 
 		// close puppeteer browser
 		await browser.close()
+
+		// clean up page structure for navigation and exporting
+		
 
 		// close database driver
 		databaseDriver.close()

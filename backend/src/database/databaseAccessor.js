@@ -1,21 +1,20 @@
-const neo4j = require('neo4j-driver')
-
 class DatabaseAccessor {
     constructor(driver, domainHome){
         this.driver = driver
-        this.sanitize = require('./pageSanitizer')
+        this.sanitize = require('../sanitizer/pageSanitizer')
+        this.helper = require('./databaseHelpers')
+        this.neo4j = require('neo4j-driver')
         this.domainHome = domainHome
-
     }
 
     async setNewTrackerNodeFromPage(page){	
         const url = await page.url()
 
-        const name = this.removeDomainFromURL(url)
+        const name = this.helper.removeDomainFromURL(url, this.domainHome)
 
-        const layer = this.getLayer(url)
+        const layer = this.helper.getLayer(url)
 
-        const title = this.sanitizeTitle(await page.title())
+        const title = this.helper.sanitizeTitle(await page.title())
 
         const content = this.sanitize(
             await page.$eval('body', content => content.innerHTML)
@@ -38,8 +37,8 @@ class DatabaseAccessor {
                     sanitized: ${sanitized},
                     occurrences: $occurrences
                 })`, {
-                    layer: neo4j.int(layer),
-                    occurrences: neo4j.int(1)
+                    layer: this.neo4j.int(layer),
+                    occurrences: this.neo4j.int(1)
                 })
             .catch(error => {
                 this.logError(error, url);
@@ -53,7 +52,7 @@ class DatabaseAccessor {
     async updateTrackerNodeFromPage(page){
         const url = await page.url()
 
-        const name = this.removeDomainFromURL(url)
+        const name = this.helper.removeDomainFromURL(url, this.domainHome)
 
         let pageMatch;
 
@@ -78,7 +77,7 @@ class DatabaseAccessor {
             await session2.run(
                 `MATCH (page:Page {name: '${name}'})
                 SET page.occurrences = $occurrences`, {
-                    occurrences: neo4j.int(pageMatch.occurrences + 1)
+                    occurrences: this.neo4j.int(pageMatch.occurrences + 1)
                 }
             )
             .catch(error => {
@@ -87,7 +86,7 @@ class DatabaseAccessor {
             .then(async () => await session2.close())
         } else {
             // if not, need to update it
-            const title = this.sanitizeTitle(await page.title())
+            const title = this.helper.sanitizeTitle(await page.title())
             const content = this.sanitize(
                 await page.$eval('body', content => content.innerHTML)
                 )
@@ -101,7 +100,7 @@ class DatabaseAccessor {
                     page.content = \'${content}\',
                     page.sanitized = ${sanitized},
                     page.occurrences = $occurrences`, {
-                    occurrences: neo4j.int(pageMatch.occurrences + 1)
+                    occurrences: this.neo4j.int(pageMatch.occurrences + 1)
                 }
             )
             .catch(error => {
@@ -115,9 +114,9 @@ class DatabaseAccessor {
     async setNewTrackerNodeFromURL(url, outerPageURL = null){
         // const url = await page.url()
 
-        const name = this.removeDomainFromURL(url)
+        const name = this.helper.removeDomainFromURL(url, this.domainHome)
 
-        const layer = this.getLayer(url)
+        const layer = this.helper.getLayer(url)
 
         let session = await this.driver.session()
         // set the page props
@@ -133,8 +132,8 @@ class DatabaseAccessor {
                     sanitized: false,
                     occurrences: $occurrences
                 })`, {
-                    layer: neo4j.int(layer),
-                    occurrences: neo4j.int(1)
+                    layer: this.neo4j.int(layer),
+                    occurrences: this.neo4j.int(1)
             })
             .catch(error => {
                 this.logError(error, url);
@@ -144,9 +143,9 @@ class DatabaseAccessor {
             })
             // if setting an inner page
             if (outerPageURL !== null){
-                const outerPageName = this.removeDomainFromURL(outerPageURL)
+                const outerPageName = this.helper.removeDomainFromURL(outerPageURL)
                 let session2 = await this.driver.session()
-                if (this.layerIsAChildOfOtherLayer(url, outerPageURL)){
+                if (this.helper.layerIsAChildOfOtherLayer(url, outerPageURL)){
                     await session2.run(
                         `MATCH 
                             (innerPage:Page),
@@ -182,7 +181,7 @@ class DatabaseAccessor {
     }
 
     async updateTrackerNodeOccurrences(url, outerPageURL = null){
-        const name = this.removeDomainFromURL(url)
+        const name = this.helper.removeDomainFromURL(url, this.domainHome)
         let session = await this.driver.session()
         await session
             .run(
@@ -198,7 +197,7 @@ class DatabaseAccessor {
             // if setting an inner page
             if (outerPageURL !== null){
                 let session2 = await this.driver.session()
-                const outerPageName = this.removeDomainFromURL(outerPageURL)
+                const outerPageName = this.helper.removeDomainFromURL(outerPageURL)
                 await session2.run(
                     `MATCH 
                         (innerPage:Page),
@@ -216,60 +215,10 @@ class DatabaseAccessor {
             } 
     }
 
-    layerIsAChildOfOtherLayer(innerPageURL, outerPageURL){
-        let match = false
-
-        const outerLayerNumber = this.getLayer(outerPageURL)
-        const innerLayerNumber = this.getLayer(innerPageURL)
-        //  this is the end part of a url like in "domain.com/about" the about
-        const outerLayerEndURL =  String(outerPageURL.match(/([^\/]*$)/))
-        //  this is the parent of the end part of a url like in "domain.com/about/our-history" the about
-        const innerLayerParentURL = String((innerPageURL.replace(/\/[^\/]*$/, '')).match(/[^\/]*$/))
-        if ((innerLayerNumber - outerLayerNumber) === 1){
-            console.log(outerLayerNumber,innerLayerNumber,outerLayerEndURL,innerLayerParentURL)
-        }
-
-        // check the parent layer level is 1 lower than the child
-        // check the parent name is really the name before child 
-        if (
-            ((innerLayerNumber - outerLayerNumber) === 1)
-            && innerLayerParentURL === outerLayerEndURL){
-                return true
-            }
-
-        return match
-    }
-
-    getLayer(url){
-        // remove the protocol as it contains two forward slashes
-        url = url.replace(/http:\/\/|https:\/\//g, '')
-
-        // find the total forward slashes, if none 0
-        const count = (url.match(/\//g) || []).length
-        // TODO check if anything nothing follows the last "/" when the count is 0 aka home page case
-        if (count === 1){
-            // error handling possibilities unknown atm
-            return 1
-        }
-        return count
-    }
-
-    sanitizeTitle(title){
-        title = String(title.replace(/\'/g, `\\'`))
-        title = String(title.replace(/\"/g, `\\"`))
-        return title
-    }
-
-    // regex a url to remove the domain, so key lookup is a tiny bit faster and less cluttered
-    removeDomainFromURL = (url) => {
-        // console.log(url);
-        return url.replace(this.domainHome, '')
-    }
-
     // check if a url is already in the tracking oject
     // returns true or false
     async isURLNewNode(url) {
-        const name = this.removeDomainFromURL(url)
+        const name = this.helper.removeDomainFromURL(url, this.domainHome)
         let newNode = false
         let session = await this.driver.session()
         await session
@@ -293,7 +242,7 @@ class DatabaseAccessor {
 
 
     async pageSanitized(url){
-        const name = this.removeDomainFromURL(url)
+        const name = this.helper.removeDomainFromURL(url, this.domainHome)
         let sanitized = false
         let session = await this.driver.session()
         await session
