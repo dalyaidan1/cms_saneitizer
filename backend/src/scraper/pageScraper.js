@@ -19,9 +19,9 @@ const scraperObject = {
 			const outerPageStatus = await databaseAccessor.isURLNewNode(outerURL)
 
 			if (outerPageStatus){
-				outerPageName = await databaseAccessor.setNewTrackerNodeFromPage(page)
+				outerPageName = await databaseAccessor.setNewPageNodeFromPage(page)
 			} else {
-				outerPageName = await databaseAccessor.updateTrackerNodeFromPage(page)
+				outerPageName = await databaseAccessor.updatePageNodeFromPage(page)
 			}			
 			
 			// scape all anchors on the page
@@ -42,9 +42,9 @@ const scraperObject = {
 			for (let url of urls){
 				// const innerPageName = databaseAccessor.removeDomainFromURL(url)						
 				if (await databaseAccessor.isURLNewNode(url)){
-					await databaseAccessor.setNewTrackerNodeFromURL(url, outerURL)
+					await databaseAccessor.setNewPageNodeFromURL(url, outerURL)
 				} else {
-					await databaseAccessor.updateTrackerNodeOccurrences(url, outerURL)							
+					await databaseAccessor.updatePageNodeOccurrences(url, outerURL)							
 				}
 			}
 

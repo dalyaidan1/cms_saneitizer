@@ -7,7 +7,7 @@ class DatabaseAccessor {
         this.domainHome = domainHome
     }
 
-    async setNewTrackerNodeFromPage(page){	
+    async setNewPageNodeFromPage(page){	
         const url = await page.url()
 
         const name = this.helper.removeDomainFromURL(url, this.domainHome)
@@ -49,7 +49,7 @@ class DatabaseAccessor {
         return name        
     }
 
-    async updateTrackerNodeFromPage(page){
+    async updatePageNodeFromPage(page){
         const url = await page.url()
 
         const name = this.helper.removeDomainFromURL(url, this.domainHome)
@@ -111,7 +111,7 @@ class DatabaseAccessor {
         return page.name
     }
 
-    async setNewTrackerNodeFromURL(url, outerPageURL = null){
+    async setNewPageNodeFromURL(url, outerPageURL = null){
         // const url = await page.url()
 
         const name = this.helper.removeDomainFromURL(url, this.domainHome)
@@ -180,7 +180,7 @@ class DatabaseAccessor {
         return name
     }
 
-    async updateTrackerNodeOccurrences(url, outerPageURL = null){
+    async updatePageNodeOccurrences(url, outerPageURL = null){
         const name = this.helper.removeDomainFromURL(url, this.domainHome)
         let session = await this.driver.session()
         await session
@@ -223,10 +223,10 @@ class DatabaseAccessor {
         let session = await this.driver.session()
         await session
             .run(
-                `OPTIONAL MATCH (page:Page {name: '${name}'})
-                RETURN page AS page`)
+                `OPTIONAL MATCH (node {name: '${name}'})
+                RETURN node AS node`)
             .then(result => {
-                const status = result.records[0].get('page')
+                const status = result.records[0].get('node')
                 if (status === null){
                     newNode = true
                 }

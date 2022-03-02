@@ -19,13 +19,22 @@ const connectLayers = {
 
             // const childNodeURLs = childLayerNodes.map(node => node.url)
             for (let childNode in childLayerNodes){
-                let stripedURL = stripURLLayerBy(childLayerNodes[childNode].url, layer-1)
-                if (await databaseAccessor.isURLNewNode(stripedURL)){
-                    // await databaseAccessor.
-                    // make new Page or Directory Node from "/" to end of striped URL
+                let parentURL = stripURLLayerBy(childLayerNodes[childNode].url, layer-1)
+                if (await databaseAccessor.isURLNewNode(parentURL)){
+                    // make new Directory Node from "/" to end of stripped URL                    
                     // set it as a parent of the childLayerNodes[childNode].url and vice-versa
+                    await databaseAccessor.setNewDirectoryNodeFromURL(childLayerNodes[childNode].url, parentURL)
                 } else {
                     // set it as a parent of the childLayerNodes[childNode].url and vice-versa
+                    if (await databaseAccessor.getNodeTypeFromURL(parentURL) === "Page"){
+                        await databaseAccessor.
+                            updatePageNodeRelationship(
+                                childLayerNodes[childNode].url, parentURL)
+                    } else {
+                        await databaseAccessor.
+                            updateDirectoryNodeRelationship(
+                                childLayerNodes[childNode].url, parentURL)
+                    }
                 }
             }
 
@@ -34,7 +43,7 @@ const connectLayers = {
             }
             return true
         }
-        return parseNodes(startLayer)
+        return parseCurrentLayer(startLayer)
     }
 }
 
