@@ -1,4 +1,7 @@
 const neo4j = require('neo4j-driver')
+// const path = require('path') 
+// // require('dotenv').config({path:'../.env'})
+// console.log(require('dotenv').config({path:'../../.env'}))
 require('dotenv').config()
 
 const {

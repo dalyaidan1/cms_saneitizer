@@ -10,12 +10,12 @@ async function scrapeAll(browserInstance, databaseDriver){
 	try{
 		browser = await browserInstance
 
-		const databaseAccessor = new DatabaseAccessor(databaseDriver, domainHome)
+		const databaseAccessor = await new DatabaseAccessor(databaseDriver, domainHome)
 
 		const timeStart = Date.now()
 		await pageScraper.scraper(browser, domainHome, databaseAccessor)
 
-		// close puppeteer browser
+		// // close puppeteer browser
 		await browser.close()
 
 		// clean up page structure for navigation and exporting

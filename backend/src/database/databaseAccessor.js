@@ -143,7 +143,7 @@ class DatabaseAccessor {
             })
             // if setting an inner page
             if (outerPageURL !== null){
-                const outerPageName = this.helper.removeDomainFromURL(outerPageURL)
+                const outerPageName = this.helper.removeDomainFromURL(outerPageURL, this.domainHome)
                 let session2 = await this.driver.session()
                 if (this.helper.layerIsAChildOfOtherLayer(url, outerPageURL)){
                     await session2.run(
@@ -154,27 +154,27 @@ class DatabaseAccessor {
                             innerPage.name = '${name}' 
                             AND outerPage.name = '${outerPageName}'
                         CREATE (innerPage)-[:PARENT]->(outerPage),
-                            (outerPage)-[:CHILD]->(innerPage),
-                            (outerPage)-[:LINKS_TO]->(innerPage)
+                            (outerPage)-[:CHILD]->(innerPage)
                         `
                     )
                     .catch(error => {
                         this.logError(error, url);
                     })
-                } else {
-                    await session2.run(
-                        `MATCH 
-                            (innerPage:Page),
-                            (outerPage:Page)
-                        WHERE 
-                            innerPage.name = '${name}'
-                            AND outerPage.name = '${outerPageName}'
-                        CREATE (outerPage)-[:LINKS_TO]->(innerPage)`
-                    )
-                    .catch(error => {
-                        this.logError(error, url);
-                    })
-                }
+                } 
+                // else {
+                //     await session2.run(
+                //         `MATCH 
+                //             (innerPage:Page),
+                //             (outerPage:Page)
+                //         WHERE 
+                //             innerPage.name = '${name}'
+                //             AND outerPage.name = '${outerPageName}'
+                //         CREATE (outerPage)-[:LINKS_TO]->(innerPage)`
+                //     )
+                //     .catch(error => {
+                //         this.logError(error, url);
+                //     })
+                // }
                 await session2.close()                    
             } 
         return name
@@ -195,24 +195,136 @@ class DatabaseAccessor {
                 await session.close()                
             })
             // if setting an inner page
-            if (outerPageURL !== null){
-                let session2 = await this.driver.session()
-                const outerPageName = this.helper.removeDomainFromURL(outerPageURL)
-                await session2.run(
-                    `MATCH 
-                        (innerPage:Page),
-                        (outerPage:Page)
-                    WHERE 
-                        innerPage.name = '${name}' 
-                        AND outerPage.name = '${outerPageName}'
-                    CREATE (outerPage)-[:LINKS_TO]->(innerPage)
-                    `
-                )
-                .catch(error => {
-                    this.logError(error, url);
+            // if (outerPageURL !== null){
+            //     let session2 = await this.driver.session()
+            //     const outerPageName = this.helper.removeDomainFromURL(outerPageURL, this.domainHome)
+            //     await session2.run(
+            //         `MATCH 
+            //             (innerPage:Page),
+            //             (outerPage:Page)
+            //         WHERE 
+            //             innerPage.name = '${name}' 
+            //             AND outerPage.name = '${outerPageName}'
+            //         CREATE (outerPage)-[:LINKS_TO]->(innerPage)
+            //         `
+            //     )
+            //     .catch(error => {
+            //         this.logError(error, url);
+            //     })
+            //     await session2.close()
+            // } 
+    }
+
+    async setNewDirectoryNodeFromURL(childURL, parentURL){
+        const parentName = this.helper.removeDomainFromURL(parentURL, this.domainHome)
+        const layer = this.helper.getLayer(parentName)
+
+        let session = await this.driver.session()
+        // set the page props
+        await session
+            .run(
+                `CREATE (dir:Directory {
+                    name: '${parentName}',
+                    id: randomUuid(),
+                    url: '${parentURL}',
+                    layer: $layer
+                })`, {
+                    layer: this.neo4j.int(layer)
+            })
+            .catch(error => {
+                this.logError(error, childURL);
+            })
+            .then(async () => {
+                await session.close()                                               
+            })
+        await this.updateNodeRelationship(childURL, parentURL)
+    }
+
+
+    async getMaxLayer(){
+        let max = 0
+        let session = await this.driver.session()
+        await session
+            .run(
+                `MATCH (node) 
+                RETURN toInteger(max(node.layer)) as layer`)
+            .then(result => {
+                max = result.records[0].get('layer').toNumber()
+            })
+            .catch(error => {
+                this.logError(error);
+            })
+            .then(async () => {
+                await session.close()                
+            }) 
+        return max 
+    }
+
+    async getAllNodesFromLayer(layer){
+        let layers = []
+        let session = await this.driver.session()
+        await session
+            .run(
+                `MATCH (nodes)
+                WHERE nodes.layer = $layerNumber
+                RETURN nodes`, {
+                    layerNumber: this.neo4j.int(layer)
                 })
-                await session2.close()
-            } 
+            .then(result => {
+                layers = result.records.map(node => {
+                    return node.get('nodes')
+                })
+            })
+            .catch(error => {
+                this.logError(error);
+            })
+            .then(async () => {
+                await session.close()                
+            }) 
+        return layers 
+    }
+
+
+    async updateNodeRelationship(childURL, parentURL){
+        const childName = this.helper.removeDomainFromURL(childURL, this.domainHome)
+        const parentName = this.helper.removeDomainFromURL(parentURL, this.domainHome)
+        let session = await this.driver.session()
+        await session.run(
+            `MATCH 
+                (childNode),
+                (parentNode)
+            WHERE 
+                childNode.name = '${childName}' 
+                AND parentNode.name = '${parentName}'
+            CREATE (childNode)-[:PARENT]->(parentNode),
+                (parentNode)-[:CHILD]->(childNode)`
+        )
+        .catch(error => {
+            this.logError(error, childURL);
+        })
+        .then(async () => {
+            await session.close()
+        })
+    }
+
+    async getNodeTypeFromURL(url){
+        const name = this.helper.removeDomainFromURL(url, this.domainHome)
+        let type = "Page"
+        let session = await this.driver.session()
+        await session
+            .run(
+                `OPTIONAL MATCH (node {name: '${name}'})
+                RETURN labels(node) AS labels`)
+            .then(result => {
+                type = result.records[0].get('labels')[0]
+            })
+            .catch(error => {
+                this.logError(error, url);
+            })
+            .then(async () => {
+                await session.close()                
+            }) 
+        return type 
     }
 
     // check if a url is already in the tracking oject
@@ -270,6 +382,7 @@ class DatabaseAccessor {
         //     console.log(error)
         //     console.log(`5s pass`)
         // }, 5000);
+        process.exit()
     }
 
 }
