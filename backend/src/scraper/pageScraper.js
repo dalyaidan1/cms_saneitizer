@@ -1,4 +1,6 @@
 const fs = require('fs')
+const {detect} = require('./contentShiftDetector')
+const DETECT_NON_RESTFUL = true
 
 // function setOuterPage()
 
@@ -20,6 +22,9 @@ const scraperObject = {
 
 			if (outerPageStatus){
 				outerPageName = await databaseAccessor.setNewPageNodeFromPage(page)
+				if (DETECT_NON_RESTFUL){
+					await detect(browser, page)
+				}
 			} else {
 				outerPageName = await databaseAccessor.updatePageNodeFromPage(page)
 			}			
