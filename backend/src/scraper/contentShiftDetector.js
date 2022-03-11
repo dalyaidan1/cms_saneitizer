@@ -44,6 +44,58 @@ async function detect(b, page){
     return await detectNestedElements(startElement)
 }
 
+async function checkPages(originalPage, changedPage, rootElement, tolerance=0, radius=RADIUS){
+    // look at the ch
+    const originalElement = await originalPage.$$(rootElement)
+    const changedElement = await changedPage.$$(rootElement)
+
+    let checks = {
+        children: false,
+        siblings: false,
+        parent: false
+    }
+
+    if (tolerance < TOLERANCE){
+        // if radius !== -1, then return checkPages, next element
+    
+        // if radius is 0, then just use a string compare
+
+        // else
+
+            // check the elements children by a for loop
+                // if the elements have children and radius != -1
+                let childResult = await checkPages(originalPage, changedPage, childElement, tolerance, radius-1)
+                if (childResult == false){
+                    tolerance += 1
+                    checks.children = false
+                }
+                
+
+        // check the element siblings in for loop
+            // if the elements have children and radius != -1
+            let siblingResult = await checkPages(originalPage, changedPage, siblingElement, tolerance, radius-1)
+            if (siblingResult == false){
+                tolerance += 1
+                checks.siblings = false
+            }
+
+        // check the parent element 
+            let parentResult = await checkPages(originalPage, changedPage, childElement, tolerance, radius-1)
+            if (parentResult === false){
+                tolerance += 1
+                checks.parent = false
+            }
+
+        // if anything is different 
+        if (Object.values(checks).filter(val => val === true) > 0){
+            return false
+        } else {
+            return true
+        }  
+    }
+    return true  
+}
+
 // check that the element is not in ignored elements 
 const checkValidElement = async (element) => {
     // TODO: make sure IGN_ELEM follows format rules of 
