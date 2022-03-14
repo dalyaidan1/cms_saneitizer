@@ -5,13 +5,14 @@ const linkMaker = require("./generateLink")
 // open navigation.html
 // const navigation = fs.writeFileSync('../../public/html/navigation.html', JSON.stringify(pageTracker))
 // write first html, nav, and ul tags
-const navigation = {
-    async generateNav(databaseAccessor){
+const exporter = {
+    async generateExport(databaseAccessor){
         const firstLayer = 0
+        const lastLayer = await databaseAccessor.getMaxLayer()
         const firstNavParts = "<html>\n<nav>\n<ul>\n"
         fs.writeFileSync(NAV_FILE, firstNavParts)
         async function generateLayer(layer){
-            if (layer < 6){
+            if (layer <= lastLayer){
                 const layerNodes = await databaseAccessor.getAllNodesFromLayer(layer)
                 for (let node in layerNodes){
                     await linkMaker.generateLink(layerNodes[node], databaseAccessor)
@@ -27,7 +28,7 @@ const navigation = {
 // get a layer
 
 
-module.exports = navigation
+module.exports = exporter
 // for each node check if page or dir
 // if a page"", write an anchor with the url and title nested inside a li
 {/* <li><a href="page.url">PAGE NAME</a></li> */}

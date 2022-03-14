@@ -247,7 +247,10 @@ class DatabaseAccessor {
         await session
             .run(
                 `MATCH (node) 
-                RETURN toInteger(max(node.layer)) as layer`)
+                RETURN node
+                ORDER BY node.layer 
+                DESC LIMIT 1
+                `)
             .then(result => {
                 max = result.records[0].get('layer').toNumber()
             })
@@ -399,6 +402,9 @@ class DatabaseAccessor {
             }) 
         return children
     }
+
+
+    getMaxLayer
 
     logError(error, url){
         console.log(url, error)        
