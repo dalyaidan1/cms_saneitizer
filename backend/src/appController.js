@@ -22,7 +22,7 @@ async function scrapeAll(browserInstance, databaseDriver){
 		// // clean up page structure for navigation and exporting
 		// await treeConnector.parseLayers(databaseAccessor)
 
-		await exporter.generateExport(databaseAccessor)
+		await exporter.generateExport(databaseAccessor, true)
 
 		// close database driver
 		databaseDriver.close()

@@ -6,16 +6,16 @@ const linkMaker = require("./generateLink")
 // const navigation = fs.writeFileSync('../../public/html/navigation.html', JSON.stringify(pageTracker))
 // write first html, nav, and ul tags
 const exporter = {
-    async generateExport(databaseAccessor){
+    async generateExport(databaseAccessor, makeDirectory=false){
         const firstLayer = 0
-        const lastLayer = await databaseAccessor.getMaxLayer()
+        const lastLayer = 6 //await databaseAccessor.getMaxLayer();
         const firstNavParts = "<html>\n<nav>\n<ul>\n"
         fs.writeFileSync(NAV_FILE, firstNavParts)
         async function generateLayer(layer){
             if (layer <= lastLayer){
                 const layerNodes = await databaseAccessor.getAllNodesFromLayer(layer)
                 for (let node in layerNodes){
-                    await linkMaker.generateLink(layerNodes[node], databaseAccessor)
+                    await linkMaker.generateLink(layerNodes[node], databaseAccessor, makeDirectory)
                 }            
                 return generateLayer(layer+1)
             } else {
