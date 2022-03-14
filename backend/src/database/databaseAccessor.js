@@ -376,6 +376,30 @@ class DatabaseAccessor {
         return sanitized
     }
 
+    async getNodeChildren(nodeName){
+        let session = await this.driver.session()
+        let children
+        await session
+            .run(
+                `OPTIONAL MATCH (p)-[:CHILD]->(c) 
+                WHERE p.name = "${nodeName}" 
+                RETURN c`)
+            .then(result => {
+                if (result !== null){
+                    children = result.records.map(node => {
+                        return node.get('c')
+                    })
+                }
+            })
+            .catch(error => {
+                this.logError(error, nodeName);
+            })
+            .then(async () => {
+                await session.close()                
+            }) 
+        return children
+    }
+
     logError(error, url){
         console.log(url, error)        
         // setTimeout( () => {
