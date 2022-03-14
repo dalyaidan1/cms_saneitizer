@@ -19,7 +19,7 @@ async function scrapeAll(browserInstance, databaseDriver){
 		await browser.close()
 
 		// clean up page structure for navigation and exporting
-		await treeConnector.parseLayers(databaseAccessor)
+		// await treeConnector.parseLayers(databaseAccessor)
 
 		// close database driver
 		databaseDriver.close()

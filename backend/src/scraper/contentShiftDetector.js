@@ -1,6 +1,5 @@
 const fs = require('fs')
-const DatabaseAccessor = require('../database/databaseAccessor')
-const USER_CONFIG = JSON.parse(fs.readFileSync('../USER_CONFIG.json'))
+const USER_CONFIG = JSON.parse(fs.readFileSync('./src/USER_CONFIG.json'))
 const PROPS_TO_CHECK = USER_CONFIG["NODE_PROPS"]
 const IGNORABLE_ELEMENTS = USER_CONFIG["IGNORABLE_ELEMENTS"]
 const TOLERANCE = USER_CONFIG["TOLERANCE"]
@@ -9,7 +8,7 @@ let browser
 
 
 
-async function detect(b, page){
+async function detect(b, page, databaseAccessor){
     // set browser
     browser = b
 
@@ -17,29 +16,41 @@ async function detect(b, page){
     let page2 = await newPage(page)
 
     // start with the body
-    const startElement = 'body'
+    const startElement = ['body']
 
     // loop through the nested elements
-    async function detectNestedElements(parentElement){
-        // get parent elements
-        const page1Body = await page.$$(parentElement)
-        const page2Body = await page2.$$(parentElement)
+    async function detectNestedElements(parentElements){
+        for (let parentElement in parentElements){
+            // get child elements
+            const page1Children = await page.$eval(parentElements[parentElement], (element) => {
+                return element.children
+            })
+            const page2Children = await page2.$eval(parentElements[parentElement], (element) => {
+                return element.children
+            })
 
-        // loop through the elements
-        for (element in page1Body) {
-            if (await checkValidElement(page1Body[element])){
-                for (prop in PROPS_TO_CHECK){
-                    await performAction(page2Body[element], PROPS_TO_CHECK[prop])
-                    // check action with tol and rad, against p1 and p2
-                    if (await checkPages(page, page2)){
-                        await DatabaseAccessor.addNewNodeFromPage(page2)
+            // loop through the elements
+            for (element in page1Children) {
+                if (await checkValidElement(page1Children[element])){
+                    for (prop of Object.keys(PROPS_TO_CHECK)){
+                        await performAction(page2Children[element], prop)
+                        // check action with tol and rad, against p1 and p2
+                        // if (await checkPages(page, page2)){
+                        //     await databaseAccessor.addNewNodeFromPage(page2)
+                        // }
+                        // reload page2 for next round
+                        await reloadPage(page2)
                     }
-                    // reload page2 for next round
-                    await reloadPage(page2)
+                }            
+            }
+
+            for  (child of page1Children){
+                if (child.hasChildNodes()){
+                    return detectNestedElements(`${parentElements[parentElement]} ${child.nodeName}`)
                 }
-            }            
+            }
+            // if children on element, for each child return detectNestedElements(child)
         }
-        // if children on element, for each child return detectNestedElements(child)
     }
     return await detectNestedElements(startElement)
 }
@@ -108,28 +119,31 @@ const checkValidElement = async (element) => {
 
 
 const performAction = async (element, propInQuestion) => {
-    if (propInQuestion.check === true){
-        let attribute = await element[Object.keys(PROPS_TO_CHECK)[prop]]
-        if (attribute !== null){
-            if (propInQuestion.ignoreWhenContaining.length > 0){
-                // if the elements value is not in the ignore
-                if (!(propInQuestion.ignoreWhenContaining.includes(attribute))){
-                    switch(propInQuestion){
-                        case String(propInQuestion.match(/touch/g)):
-                            await element.tap()
-                            break
-                        case String(propInQuestion.match(/focus/g)):
-                            await element.focus()
-                            break
-                        case String(propInQuestion.match(/select/g)):
-                            await element.select()
-                            break  
-                        default:
-                            await element.click()
-                    }
+    if (PROPS_TO_CHECK[propInQuestion].check === true){
+        // let attributes = await element.evaluate(element => {
+        //     return element.getEventListeners()
+        // })
+        // let attribute = element[propInQuestion]
+        // if (attribute !== undefined){
+            // if the elements value is not in the ignore
+            let matchingAttributes = PROPS_TO_CHECK[propInQuestion].ignoreWhenContaining
+                                        .filter(attr => element.attributes.includes(attr))
+            if (matchingAttributes.length === 0){
+                switch(propInQuestion){
+                    case String(propInQuestion.match(/touch/g)):
+                        await element.tap
+                        break
+                    case String(propInQuestion.match(/focus/g)):
+                        await element.focus
+                        break
+                    case String(propInQuestion.match(/select/g)):
+                        await element.select
+                        break  
+                    default:
+                        await element.click
                 }
             }
-        }            
+        // }           
     }
 }
 
