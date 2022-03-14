@@ -14,13 +14,13 @@ async function scrapeAll(browserInstance, databaseDriver){
 		const databaseAccessor = await new DatabaseAccessor(databaseDriver, domainHome)
 
 		const timeStart = Date.now()
-		// await pageScraper.scraper(browser, domainHome, databaseAccessor)
+		await pageScraper.scraper(browser, domainHome, databaseAccessor)
 
 		// // // close puppeteer browser
-		// await browser.close()
+		await browser.close()
 
 		// // clean up page structure for navigation and exporting
-		// await treeConnector.parseLayers(databaseAccessor)
+		await treeConnector.parseLayers(databaseAccessor)
 
 		await exporter.generateExport(databaseAccessor, true)
 
