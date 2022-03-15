@@ -37,7 +37,7 @@ async function detect(b, page, databaseAccessor){
                     // if change good, make new page
                     // TODO: properly give options for title
                     // TODO: differ between urls ending in / vs .html (or other ext)
-                    if (await checkPages(page, page2, node)){
+                    if (await pagesDifferent(page, page2, node)){
                         let oldTitle = await page2.title()
                         let oldURL = await page2.url()
                         let newTitle = `${oldTitle} - ${node.element.dataId}`
@@ -174,87 +174,60 @@ const getValidEvents = async (node) => {
     return validEvents
 }
 
-async function checkPages(originalPage, eventPage, rootElement, tolerance=0, radius=RADIUS){
-    // simple string compare, to test
-    // let oPageElements = await originalPage.$eval('body', body => body.innerHTML)
-    // let cPageElements = await changedPage.$eval('body', body => body.innerHTML)
-    // return !Boolean(Math.abs(oPageElements.localeCompare(cPageElements)))
+async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=0, radius=RADIUS){
 
+    async function checkNodes(originalPage, eventPage, rootElementID, tolerance, radius){
+        async function getCompareNode(page, rootElementID){
+            return await page.evaluate((rootElementID) => {
+                let root = document.querySelector(`[data-cms-saneitizer="${rootElementID}"]`)        
+                return {
+                    html:root.innerHTML,
+                    parentID:root.parentElement.dataset.cmsSaneitizer, 
+                }
+            }, rootElementID)
+        }
+        // eval p1 node
+        let originalPageCompareNode = await getCompareNode(originalPage, rootElementID)
+        // eval p2 node
+        let eventPageCompareNode = await getCompareNode(eventPage, rootElementID)
+        // if innerHTML diff
+        if (originalPageCompareNode["html"] !== eventPageCompareNode["html"]){
+            // tolerance -1
+            tolerance -= 1 
+        }
 
-    // TODO: properly compare changes with tolerance and radius 
-    // look at the ch
-    const originalElement = await originalPage.$(`[data-cms-saneitizer="${rootElement.element.dataId}"]`)
-    const eventElement = await eventPage.$(`[data-cms-saneitizer="${rootElement.element.dataId}"]`)
+        // if the tolerance is -1, there has been enough element different to justify a new page
+        if (tolerance = -1){
+            return true
+        }
+            
+        // get parent of node, radius -1, until radius is 0
+        if (radius > 0){
+            return getRadiusHTML(originalPage, eventPage, rootElementID, tolerance, radius-1)
+        }
 
-    // let checks = {
-    //     children: false,
-    //     siblings: false,
-    //     parent: false
-    // }
-
-    async function getRadiusHTML(page, rootElement, radius){
-        return await page.evaluate((rootElement, radius) => {
-            if (radius > 0){
-                let root = document.querySelector(`[data-cms-saneitizer="${rootElement.element.dataId}"]`)
-                let parent = (function getParent(element, left=radius){
-                    if (left === 0){
-                        return element
-                    }
-                    return getParent(element.parentElement, left-1)
-                })(root)
-                return parent.innerHTML
-            } else {
-                return document.body.innerHTML
-            }
-        },rootElement, radius)
+        // pages are similar enough, to not have a new page
+        return false
     }
 
 
-    let originalElementRadiusHTML = await getRadiusHTML(originalPage, rootElement, radius)
-
-    let eventElementRadiusHTML = await getRadiusHTML(eventPage, rootElement, radius)
-
-    return !(originalElementRadiusHTML === eventElementRadiusHTML)
-
-    // if (tolerance < TOLERANCE){
-    //     // if radius !== -1, then return checkPages, next element
-    
-    //     // if radius is 0, then just use a string compare
-
-    //     // else
-
-    //         // check the elements children by a for loop
-    //             // if the elements have children and radius != -1
-    //             let childResult = await checkPages(originalPage, changedPage, childElement, tolerance, radius-1)
-    //             if (childResult == false){
-    //                 tolerance += 1
-    //                 checks.children = false
-    //             }
-                
-
-    //     // check the element siblings in for loop
-    //         // if the elements have children and radius != -1
-    //         let siblingResult = await checkPages(originalPage, changedPage, siblingElement, tolerance, radius-1)
-    //         if (siblingResult == false){
-    //             tolerance += 1
-    //             checks.siblings = false
-    //         }
-
-    //     // check the parent element 
-    //         let parentResult = await checkPages(originalPage, changedPage, childElement, tolerance, radius-1)
-    //         if (parentResult === false){
-    //             tolerance += 1
-    //             checks.parent = false
-    //         }
-
-    //     // if anything is different 
-    //     if (Object.values(checks).filter(val => val === true) > 0){
-    //         return false
-    //     } else {
-    //         return true
-    //     }  
-    // }
-    // return true  
+    if (radius > -1){
+        return await checkNodes(originalPage, eventPage, rootElement.element.dataId, tolerance, radius)
+    }
+    // radius being -1 by default means compare every element
+    // get how far the radius is form the top level element, then call func
+    radius = await originalPage.evaluate((rootElementID)=>{
+        let root = document.querySelector(`[data-cms-saneitizer="${rootElementID}"]`)
+        // recurse up the dom tree until reaching the body, returning the recurse number
+        let newRadius = (function getParent(count, element){
+            if (element.tagName === 'body'){
+                return count
+            }
+            return getParent(element.parentElement, count+1)
+        })(0, root)
+        return newRadius
+    },rootElement.element.dataId)
+    return await checkNodes(originalPage, eventPage, rootElement.element.dataId, tolerance, radius)
 }
 
 const performEvent = async (elementHandle, event) => {
