@@ -6,53 +6,164 @@ const TOLERANCE = USER_CONFIG["TOLERANCE"]
 const RADIUS = USER_CONFIG["RADIUS"]
 let browser
 
+// const addDatasetIds = require('./addDatasaetIds')
 
+// get all event listeners on page
+// remove 
 
 async function detect(b, page, databaseAccessor){
     // set browser
     browser = b
-
+    
     // second page for comparisons
     let page2 = await newPage(page)
 
-    // start with the body
-    const startElement = ['body']
+    // assign all element the page ids, through the dataset prop
+    await assignPageIDs(page)
+    await assignPageIDs(page2)
 
-    // loop through the nested elements
-    async function detectNestedElements(parentElements){
-        for (let parentElement in parentElements){
-            // get child elements
-            const page1Children = await page.$eval(parentElements[parentElement], (element) => {
-                return element.children
-            })
-            const page2Children = await page2.$eval(parentElements[parentElement], (element) => {
-                return element.children
-            })
+    // get all the listeners in the page
+    const nodes = await detectEventElements(page2)
 
-            // loop through the elements
-            for (element in page1Children) {
-                if (await checkValidElement(page1Children[element])){
-                    for (prop of Object.keys(PROPS_TO_CHECK)){
-                        await performAction(page2Children[element], prop)
-                        // check action with tol and rad, against p1 and p2
-                        // if (await checkPages(page, page2)){
-                        //     await databaseAccessor.addNewNodeFromPage(page2)
-                        // }
-                        // reload page2 for next round
-                        await reloadPage(page2)
-                    }
-                }            
-            }
-
-            for  (child of page1Children){
-                if (child.hasChildNodes()){
-                    return detectNestedElements(`${parentElements[parentElement]} ${child.nodeName}`)
+    // loop through all the nodes with listeners
+    for (let node of nodes){
+        if (checkValidElement(node.element.tag)){
+            let eventsToCheck = await getValidEvents(node)
+            if (eventsToCheck.length > 0){
+                for (let event of eventsToCheck){
+                    let elementHandleWithListener = await getElementHandle(page2, node.element)
+                    await performEvent(elementHandleWithListener, event)
+                    // check the changes
+                    // if change good, make new page
+                    await databaseAccessor.setNewPageNodeFromPage(page2)
+                    // reload page 2
+                    await reloadPage(page2)
                 }
             }
-            // if children on element, for each child return detectNestedElements(child)
         }
     }
-    return await detectNestedElements(startElement)
+}
+
+async function detectEventElements(page){
+
+    const client = await page.target().createCDPSession()  
+
+    async function getListener(objType){
+        const {result} = await client
+            .send('Runtime.evaluate', {expression: objType})
+        // return result
+        const {listeners} = await client
+            .send('DOMDebugger.getEventListeners', {objectId: result.objectId})
+        return listeners
+    }
+
+    let elements = await page.$$('*')
+    
+    let listeners = []
+
+    // y.push(getListener('window'))
+
+    // y.push(getListener('document'))
+
+    for (let element in elements){
+        let event = await getListener(`document.querySelectorAll('*')[${element}]`)
+        let dataId = await page.evaluate((element) => {
+            return [...document.querySelectorAll(`[data-cms-saneitizer="${element}"]`)]
+                .map(el =>
+                    ({
+                        "dataId": el.dataset.cmsSaneitizer, 
+                        "tag": el.tagName,
+                        "attributes": ((attrs) => {
+                            let rtAttrs = []
+                            // debugger;
+                            for (let attr = 0; attr < attrs.length; attr++) { 
+                                rtAttrs.push({
+                                    "name": attrs.item(attr).name,
+                                    "value": attrs.item(attr).value,
+                                })
+                            }
+                            return rtAttrs
+                        })(el.attributes),
+                    })
+                )
+            }, element)
+        if (Object.keys(event).length > 0) {
+            listeners.push({
+                    "events":event, 
+                    "element":dataId[0]
+                })
+        }
+    }
+    return listeners
+}
+
+async function assignPageIDs(page){
+    const injectScript = `(() => { 
+        \nconst allTags = document.getElementsByTagName("*")
+        \n for (let tag in allTags){ 
+            \nallTags[tag].setAttribute("data-cms-saneitizer", tag)}})()`
+
+    await page.addScriptTag({content:injectScript, type:"text/javascript"})
+}
+
+async function getElementHandle(page, element){
+    return await page.$(`[data-cms-saneitizer="${element.dataId}"]`)
+}
+
+
+// check that the element is not in ignored elements 
+const checkValidElement = async (element) => {
+    // TODO: make sure IGN_ELEM follows format rules of 
+    // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_element_tagname2
+    if (IGNORABLE_ELEMENTS.includes(element)){
+        return false
+    }
+    return true
+}
+
+// check that the element is not in ignored elements 
+const getValidEvents = async (node) => {
+    let validEvents = [...new Set(
+        node.events.map(event => event.type)
+    )]
+    for (let event in node.events){
+        let eventToCheck = node.events[event].type
+
+        // if this event should be checked, according to the user
+        if (PROPS_TO_CHECK[eventToCheck].check === true){
+
+            // get all the attribute names that should be ignored in the node being checked
+            let matchingAttributeNames = PROPS_TO_CHECK[eventToCheck].ignoreWhenContaining
+                                            .map(attribute => attribute.name)
+                                            .filter(attributeName => node.element.attributes
+                                                            .map(attribute => attribute.name)
+                                                            .includes(attributeName))
+
+            // loop through all the attributes that should be ignored
+            for (let attribute of PROPS_TO_CHECK[eventToCheck].ignoreWhenContaining){
+                // if the attribute appears in the possibility of being ignored
+                if (matchingAttributeNames.includes(attribute.name)){
+                    // if the value is blank, it will always be valid to ignore
+                    if (attribute.value === ''){
+                        validEvents = validEvents.filter(event => event !== eventToCheck)
+                    }
+                    // check the attributes on node being checked
+                    for (let currentNodeAttribute of node.element.attribute){
+                        // if the nodes attributes match a case that should be ignored
+                        if (currentNodeAttribute.name === attribute.name 
+                            && currentNodeAttribute.value === attribute.value ){
+                                // remove them from being valid
+                                validEvents = validEvents.filter(event => event !== eventToCheck)
+                        }
+                    }
+                }
+            }
+        } else {
+            validEvents = validEvents.filter(event => event !== eventToCheck)
+        }
+    }
+    
+    return validEvents
 }
 
 async function checkPages(originalPage, changedPage, rootElement, tolerance=0, radius=RADIUS){
@@ -107,43 +218,19 @@ async function checkPages(originalPage, changedPage, rootElement, tolerance=0, r
     return true  
 }
 
-// check that the element is not in ignored elements 
-const checkValidElement = async (element) => {
-    // TODO: make sure IGN_ELEM follows format rules of 
-    // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_element_tagname2
-    if (!(IGNORABLE_ELEMENTS.includes(element.tagName))){
-        return true
-    }
-    return false
-}
-
-
-const performAction = async (element, propInQuestion) => {
-    if (PROPS_TO_CHECK[propInQuestion].check === true){
-        // let attributes = await element.evaluate(element => {
-        //     return element.getEventListeners()
-        // })
-        // let attribute = element[propInQuestion]
-        // if (attribute !== undefined){
-            // if the elements value is not in the ignore
-            let matchingAttributes = PROPS_TO_CHECK[propInQuestion].ignoreWhenContaining
-                                        .filter(attr => element.attributes.includes(attr))
-            if (matchingAttributes.length === 0){
-                switch(propInQuestion){
-                    case String(propInQuestion.match(/touch/g)):
-                        await element.tap
-                        break
-                    case String(propInQuestion.match(/focus/g)):
-                        await element.focus
-                        break
-                    case String(propInQuestion.match(/select/g)):
-                        await element.select
-                        break  
-                    default:
-                        await element.click
-                }
-            }
-        // }           
+const performEvent = async (elementHandle, event) => {
+    switch(event){
+        case String(event.match(/touch/g)):
+            await elementHandle.tap()
+            break
+        case String(event.match(/focus/g)):
+            await elementHandle.focus()
+            break
+        case String(event.match(/select/g)):
+            await elementHandle.select()
+            break  
+        default:
+            await elementHandle.click()
     }
 }
 
