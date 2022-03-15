@@ -7,18 +7,28 @@ class DatabaseAccessor {
         this.domainHome = domainHome
     }
 
-    async setNewPageNodeFromPage(page){	
-        const url = await page.url()
+    async setNewPageNodeFromPage(page, options=null){
+        const url = options["url"] === undefined
+            ? await page.url()
+            : options["url"]
 
-        const name = this.helper.removeDomainFromURL(url, this.domainHome)
+        const name = options["name"] === undefined
+            ?  this.helper.removeDomainFromURL(url, this.domainHome)
+            :  options["name"]
 
-        const layer = this.helper.getLayer(url)
+        const layer = options["layer"] === undefined
+            ? this.helper.getLayer(url)
+            : options["name"]
 
-        const title = this.helper.sanitizeTitle(await page.title())
+        const title = options["title"] === undefined
+            ? this.helper.sanitizeTitle(await page.title())
+            : options["title"]
 
-        const content = this.sanitize(
-            await page.$eval('body', content => content.innerHTML)
-            )
+        const content = options["content"] === undefined 
+            ? this.sanitize( 
+                await page.$eval('body', content => content.innerHTML))
+            : this.sanitize(options["content"])
+        
         let sanitized = false
         if (content.length !== 0){
             sanitized = true

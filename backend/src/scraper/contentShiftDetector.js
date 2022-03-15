@@ -35,7 +35,15 @@ async function detect(b, page, databaseAccessor){
                     await performEvent(elementHandleWithListener, event)
                     // check the changes
                     // if change good, make new page
-                    await databaseAccessor.setNewPageNodeFromPage(page2)
+                    // TODO: properly give options for title
+                    // TODO: differ between urls ending in / vs .html (or other ext)
+                    if (await checkPages(page, page2, node)){
+                        let oldTitle = await page2.title()
+                        let oldURL = await page2.url()
+                        let newTitle = `${oldTitle} - ${node.element.dataId}`
+                        let newURL = `${oldURL}${node.element.dataId}`
+                        await databaseAccessor.setNewPageNodeFromPage(page2, {url:newURL,title:newTitle})
+                    }
                     // reload page 2
                     await reloadPage(page2)
                 }
@@ -167,55 +175,60 @@ const getValidEvents = async (node) => {
 }
 
 async function checkPages(originalPage, changedPage, rootElement, tolerance=0, radius=RADIUS){
+    // simple string compare, to test
+    let oPageElements = await originalPage.$eval('body', body => body.innerHTML)
+    let cPageElements = await changedPage.$eval('body', body => body.innerHTML)
+    return !Boolean(Math.abs(oPageElements.localeCompare(cPageElements)))
+    // TODO: properly compare changes with tolerance and radius 
     // look at the ch
-    const originalElement = await originalPage.$$(rootElement)
-    const changedElement = await changedPage.$$(rootElement)
+    // const originalElement = await originalPage.$$(rootElement)
+    // const changedElement = await changedPage.$$(rootElement)
 
-    let checks = {
-        children: false,
-        siblings: false,
-        parent: false
-    }
+    // let checks = {
+    //     children: false,
+    //     siblings: false,
+    //     parent: false
+    // }
 
-    if (tolerance < TOLERANCE){
-        // if radius !== -1, then return checkPages, next element
+    // if (tolerance < TOLERANCE){
+    //     // if radius !== -1, then return checkPages, next element
     
-        // if radius is 0, then just use a string compare
+    //     // if radius is 0, then just use a string compare
 
-        // else
+    //     // else
 
-            // check the elements children by a for loop
-                // if the elements have children and radius != -1
-                let childResult = await checkPages(originalPage, changedPage, childElement, tolerance, radius-1)
-                if (childResult == false){
-                    tolerance += 1
-                    checks.children = false
-                }
+    //         // check the elements children by a for loop
+    //             // if the elements have children and radius != -1
+    //             let childResult = await checkPages(originalPage, changedPage, childElement, tolerance, radius-1)
+    //             if (childResult == false){
+    //                 tolerance += 1
+    //                 checks.children = false
+    //             }
                 
 
-        // check the element siblings in for loop
-            // if the elements have children and radius != -1
-            let siblingResult = await checkPages(originalPage, changedPage, siblingElement, tolerance, radius-1)
-            if (siblingResult == false){
-                tolerance += 1
-                checks.siblings = false
-            }
+    //     // check the element siblings in for loop
+    //         // if the elements have children and radius != -1
+    //         let siblingResult = await checkPages(originalPage, changedPage, siblingElement, tolerance, radius-1)
+    //         if (siblingResult == false){
+    //             tolerance += 1
+    //             checks.siblings = false
+    //         }
 
-        // check the parent element 
-            let parentResult = await checkPages(originalPage, changedPage, childElement, tolerance, radius-1)
-            if (parentResult === false){
-                tolerance += 1
-                checks.parent = false
-            }
+    //     // check the parent element 
+    //         let parentResult = await checkPages(originalPage, changedPage, childElement, tolerance, radius-1)
+    //         if (parentResult === false){
+    //             tolerance += 1
+    //             checks.parent = false
+    //         }
 
-        // if anything is different 
-        if (Object.values(checks).filter(val => val === true) > 0){
-            return false
-        } else {
-            return true
-        }  
-    }
-    return true  
+    //     // if anything is different 
+    //     if (Object.values(checks).filter(val => val === true) > 0){
+    //         return false
+    //     } else {
+    //         return true
+    //     }  
+    // }
+    // return true  
 }
 
 const performEvent = async (elementHandle, event) => {
