@@ -174,21 +174,47 @@ const getValidEvents = async (node) => {
     return validEvents
 }
 
-async function checkPages(originalPage, changedPage, rootElement, tolerance=0, radius=RADIUS){
+async function checkPages(originalPage, eventPage, rootElement, tolerance=0, radius=RADIUS){
     // simple string compare, to test
-    let oPageElements = await originalPage.$eval('body', body => body.innerHTML)
-    let cPageElements = await changedPage.$eval('body', body => body.innerHTML)
-    return !Boolean(Math.abs(oPageElements.localeCompare(cPageElements)))
+    // let oPageElements = await originalPage.$eval('body', body => body.innerHTML)
+    // let cPageElements = await changedPage.$eval('body', body => body.innerHTML)
+    // return !Boolean(Math.abs(oPageElements.localeCompare(cPageElements)))
+
+
     // TODO: properly compare changes with tolerance and radius 
     // look at the ch
-    // const originalElement = await originalPage.$$(rootElement)
-    // const changedElement = await changedPage.$$(rootElement)
+    const originalElement = await originalPage.$(`[data-cms-saneitizer="${rootElement.element.dataId}"]`)
+    const eventElement = await eventPage.$(`[data-cms-saneitizer="${rootElement.element.dataId}"]`)
 
     // let checks = {
     //     children: false,
     //     siblings: false,
     //     parent: false
     // }
+
+    async function getRadiusHTML(page, rootElement, radius){
+        return await page.evaluate((rootElement, radius) => {
+            if (radius > 0){
+                let root = document.querySelector(`[data-cms-saneitizer="${rootElement.element.dataId}"]`)
+                let parent = (function getParent(element, left=radius){
+                    if (left === 0){
+                        return element
+                    }
+                    return getParent(element.parentElement, left-1)
+                })(root)
+                return parent.innerHTML
+            } else {
+                return document.body.innerHTML
+            }
+        },rootElement, radius)
+    }
+
+
+    let originalElementRadiusHTML = await getRadiusHTML(originalPage, rootElement, radius)
+
+    let eventElementRadiusHTML = await getRadiusHTML(eventPage, rootElement, radius)
+
+    return !(originalElementRadiusHTML === eventElementRadiusHTML)
 
     // if (tolerance < TOLERANCE){
     //     // if radius !== -1, then return checkPages, next element
