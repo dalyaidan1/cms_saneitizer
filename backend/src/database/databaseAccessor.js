@@ -14,11 +14,11 @@ class DatabaseAccessor {
 
         const name = options["name"] === undefined
             ?  this.helper.removeDomainFromURL(url, this.domainHome)
-            :  options["name"]
+            :  this.helper.removeDomainFromURL(options["name"], this.domainHome)
 
         const layer = options["layer"] === undefined
             ? this.helper.getLayer(url)
-            : options["name"]
+            : options["layer"]
 
         const title = options["title"] === undefined
             ? this.helper.sanitizeTitle(await page.title())

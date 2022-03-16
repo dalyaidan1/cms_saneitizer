@@ -1,15 +1,19 @@
 const fs = require('fs')
 const NAV_FILE = 'public/html/navigation.html'
-const {formatDirectoryTitle} = require('./generateHelpers')
+const {
+    formatDirectoryTitle, 
+    formatAnchorURL,
+    deScapeContent,
+} = require('./generateHelpers')
 
 async function newLink(node, makeDirectory){
-    let tempLink = `<li><a href="${node.properties.url}">${node.properties.title}</a></li>\n`
+    let tempLink = `<li><a href="${formatAnchorURL(node.properties.name)}">${node.properties.title}</a></li>\n`
     fs.appendFileSync(NAV_FILE, tempLink)
     if (makeDirectory){
         const filePathName = `public/html${node.properties.name}`.match(/\.html/) !== null 
         ? `public/html${node.properties.name}`
         : `public/html${node.properties.name}.html`
-        fs.writeFileSync(filePathName, node.properties.content)
+        fs.writeFileSync(filePathName, deScapeContent(node.properties.content))
     }
 }
 

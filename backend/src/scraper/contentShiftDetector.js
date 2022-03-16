@@ -41,22 +41,27 @@ async function detect(b, page, databaseAccessor){
                         // get rid of ending slash
                         oldURL = oldURL.replace(/\/$/, '')
 
-                        // get rid of a .<ext> in a file
-                        oldURL = oldURL.replace(/\.[a-zA-Z0-9]*$/, '')
+                        // get rid of a .<ext> in a file, unless a top level page (eg. abc.com/blah)
+                        if (oldURL.match(/\.com$/) === null){
+                            oldURL = oldURL.replace(/\.[a-zA-Z0-9]*$/, '')
+                        }
+                        
 
-                        let newTitle = `${oldTitle} - ${node.element.dataId}`
-                        let newURL = `${oldURL}?page=${node.element.dataId}-${Math.floor(Math.random() * 100000)}.html`
+                        let newTitle = `${oldTitle} - ${node.element.dataId}`                        
+                        let newURL = `${oldURL}_page${node.element.dataId}-${Math.floor(Math.random() * 100000)}_.html`
                         // check if this is new
                         const subPageNew = await databaseAccessor.isURLNewNode(newURL)
                         if (subPageNew){
                             // set the new page
-                            await databaseAccessor.setNewPageNodeFromPage(page2, {url:newURL,title:newTitle})
+                            await databaseAccessor.setNewPageNodeFromPage(page2, {
+                                url:newURL,
+                                title:newTitle})
                             elementIDsAndEventsToBeChanged.push(
-                                ({
-                                    elementID:node.element.dataId,
+                                {
+                                    dataId:node.element.dataId,
                                     eventType:node.events.type,
                                     goTo:newURL
-                                })
+                                }
                             )
                         }
                     }
@@ -73,7 +78,7 @@ async function detect(b, page, databaseAccessor){
 async function updateBasePageEvents(page, elementIDsAndEventsToBeChanged){
     await page.evaluate((elementIDsAndEventsToBeChanged) => {
         for (node of elementIDsAndEventsToBeChanged){
-            let elementToChangeEvent = document.querySelector(`[data-cms-saneitizer="${node.element.dataId}"]`)
+            let elementToChangeEvent = document.querySelector(`[data-cms-saneitizer="${node.dataId}"]`)
             elementToChangeEvent.setAttribute(node.eventType, () => window.location = node.goTo)
         }
 
