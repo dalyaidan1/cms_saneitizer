@@ -19,6 +19,7 @@ async function scrapeAll(browserInstance, databaseDriver){
 		// // // close puppeteer browser
 		await browser.close()
 
+
 		// // clean up page structure for navigation and exporting
 		await treeConnector.parseLayers(databaseAccessor)
 

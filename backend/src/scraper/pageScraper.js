@@ -1,4 +1,6 @@
 const fs = require('fs')
+const {detect} = require('./contentShiftDetector')
+const DETECT_NON_RESTFUL = true
 
 // function setOuterPage()
 
@@ -24,6 +26,10 @@ const scraperObject = {
 				outerPageName = await databaseAccessor.updatePageNodeFromPage(page)
 			}			
 			
+			if (DETECT_NON_RESTFUL){
+				await detect(browser, page, databaseAccessor)
+			}
+
 			// scape all anchors on the page
 			let urls = await page.$$eval('a', anchors => {
 				// set the return array that will be scraped on this recursion
