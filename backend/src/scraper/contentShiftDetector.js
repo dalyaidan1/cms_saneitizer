@@ -6,11 +6,6 @@ const TOLERANCE = USER_CONFIG["TOLERANCE"]
 const RADIUS = USER_CONFIG["RADIUS"]
 let browser
 
-// const addDatasetIds = require('./addDatasaetIds')
-
-// get all event listeners on page
-// remove 
-
 async function detect(b, page, databaseAccessor){
     // set browser
     browser = b
@@ -35,11 +30,16 @@ async function detect(b, page, databaseAccessor){
                     await performEvent(elementHandleWithListener, event)
                     // check the changes
                     // if change good, make new page
-                    // TODO: properly give options for title
-                    // TODO: differ between urls ending in / vs .html (or other ext)
+                    // TODO: properly give options for title                    
                     if (await pagesDifferent(page, page2, node)){
+                        // send 
                         let oldTitle = await page2.title()
                         let oldURL = await page2.url()
+                        let endsInAForwardSlash = /\/$/
+                        // TODO: differ between urls ending in / vs .html (or other ext)
+                        if (!(endsInAForwardSlash.test(oldURL))){
+                            oldURL = oldURL.replace(/\.[a-zA-Z0-9]*$/, '/')
+                        }
                         let newTitle = `${oldTitle} - ${node.element.dataId}`
                         let newURL = `${oldURL}${node.element.dataId}`
                         await databaseAccessor.setNewPageNodeFromPage(page2, {url:newURL,title:newTitle})
@@ -53,7 +53,6 @@ async function detect(b, page, databaseAccessor){
 }
 
 async function detectEventElements(page){
-
     const client = await page.target().createCDPSession()  
 
     async function getListener(objType){
@@ -68,10 +67,6 @@ async function detectEventElements(page){
     let elements = await page.$$('*')
     
     let listeners = []
-
-    // y.push(getListener('window'))
-
-    // y.push(getListener('document'))
 
     for (let element in elements){
         let event = await getListener(`document.querySelectorAll('*')[${element}]`)
@@ -174,7 +169,7 @@ const getValidEvents = async (node) => {
     return validEvents
 }
 
-async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=0, radius=RADIUS){
+async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=TOLERANCE, radius=RADIUS){
 
     async function checkNodes(originalPage, eventPage, rootElementID, tolerance, radius){
         async function getCompareNode(page, rootElementID){
