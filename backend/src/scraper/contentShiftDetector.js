@@ -59,7 +59,7 @@ async function detect(b, page, databaseAccessor){
                             elementIDsAndEventsToBeChanged.push(
                                 {
                                     dataId:node.element.dataId,
-                                    eventType:node.events.type,
+                                    events:node.events,
                                     goTo:newURL
                                 }
                             )
@@ -79,7 +79,9 @@ async function updateBasePageEvents(page, elementIDsAndEventsToBeChanged){
     await page.evaluate((elementIDsAndEventsToBeChanged) => {
         for (node of elementIDsAndEventsToBeChanged){
             let elementToChangeEvent = document.querySelector(`[data-cms-saneitizer="${node.dataId}"]`)
-            elementToChangeEvent.setAttribute(node.eventType, () => window.location = node.goTo)
+            for (let subEvent of node.events){
+                elementToChangeEvent.setAttribute(`on${subEvent["type"]}`, `window.location.href='${node.goTo}'`)
+            }
         }
 
     }, elementIDsAndEventsToBeChanged)

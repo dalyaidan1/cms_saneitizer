@@ -8,6 +8,11 @@ const scraperObject = {
 
 		async function scrapeCurrentPage(outerURL){
 			console.log(`Navigating to ${outerURL}...`)
+
+			if (outerURL === "http://books.toscrape.com/catalogue/page-2.html"){
+				console.log("skdfnjksd");
+			}
+
 			// navigate to the selected page
 			await page.goto(outerURL)
 			// wait for content to load
