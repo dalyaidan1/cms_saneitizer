@@ -20,6 +20,8 @@ async function detect(b, page, databaseAccessor){
     // get all the listeners in the page
     const nodes = await detectEventElements(page2)
 
+    let elementIDsAndEventsToBeChanged = []
+
     // loop through all the nodes with listeners
     for (let node of nodes){
         if (checkValidElement(node.element.tag)){
@@ -35,14 +37,28 @@ async function detect(b, page, databaseAccessor){
                         // send 
                         let oldTitle = await page2.title()
                         let oldURL = await page2.url()
-                        let endsInAForwardSlash = /\/$/
-                        // TODO: differ between urls ending in / vs .html (or other ext)
-                        if (!(endsInAForwardSlash.test(oldURL))){
-                            oldURL = oldURL.replace(/\.[a-zA-Z0-9]*$/, '/')
-                        }
+                        
+                        // get rid of ending slash
+                        oldURL = oldURL.replace(/\/$/, '')
+
+                        // get rid of a .<ext> in a file
+                        oldURL = oldURL.replace(/\.[a-zA-Z0-9]*$/, '')
+
                         let newTitle = `${oldTitle} - ${node.element.dataId}`
-                        let newURL = `${oldURL}${node.element.dataId}`
-                        await databaseAccessor.setNewPageNodeFromPage(page2, {url:newURL,title:newTitle})
+                        let newURL = `${oldURL}?page=${node.element.dataId}-${Math.floor(Math.random() * 100000)}.html`
+                        // check if this is new
+                        const subPageNew = await databaseAccessor.isURLNewNode(newURL)
+                        if (subPageNew){
+                            // set the new page
+                            await databaseAccessor.setNewPageNodeFromPage(page2, {url:newURL,title:newTitle})
+                            elementIDsAndEventsToBeChanged.push(
+                                ({
+                                    elementID:node.element.dataId,
+                                    eventType:node.events.type,
+                                    goTo:newURL
+                                })
+                            )
+                        }
                     }
                     // reload page 2
                     await reloadPage(page2)
@@ -50,6 +66,18 @@ async function detect(b, page, databaseAccessor){
             }
         }
     }
+    await updateBasePageEvents(page, elementIDsAndEventsToBeChanged)
+    await page2.close()
+}
+
+async function updateBasePageEvents(page, elementIDsAndEventsToBeChanged){
+    await page.evaluate((elementIDsAndEventsToBeChanged) => {
+        for (node of elementIDsAndEventsToBeChanged){
+            let elementToChangeEvent = document.querySelector(`[data-cms-saneitizer="${node.element.dataId}"]`)
+            elementToChangeEvent.setAttribute(node.eventType, () => window.location = node.goTo)
+        }
+
+    }, elementIDsAndEventsToBeChanged)
 }
 
 async function detectEventElements(page){
@@ -133,7 +161,8 @@ const getValidEvents = async (node) => {
         let eventToCheck = node.events[event].type
 
         // if this event should be checked, according to the user
-        if (PROPS_TO_CHECK[eventToCheck].check === true){
+        if ( (PROPS_TO_CHECK[eventToCheck] !== undefined)
+            && (PROPS_TO_CHECK[eventToCheck].check === true)){
 
             // get all the attribute names that should be ignored in the node being checked
             let matchingAttributeNames = PROPS_TO_CHECK[eventToCheck].ignoreWhenContaining

@@ -13,8 +13,8 @@ function stripURLLayerBy(url, number){
 
 const connectLayers = {
     async parseLayers(databaseAccessor) {
-        const startLayer = await databaseAccessor.getMaxLayer()
-        console.log(startLayer)
+        console.log("Starting Final Connections......")
+        const startLayer = await databaseAccessor.getMaxLayer();
         async function parseCurrentLayer(layer){
             const childLayerNodes = await databaseAccessor.getAllNodesFromLayer(layer)
             // cant do this because it would needed to be updated every round

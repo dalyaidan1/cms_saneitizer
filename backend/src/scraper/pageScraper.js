@@ -1,13 +1,11 @@
-const fs = require('fs')
 const {detect} = require('./contentShiftDetector')
 const DETECT_NON_RESTFUL = true
 
-// function setOuterPage()
 
 const scraperObject = {
     async scraper(browser, url, databaseAccessor){
         let page = await browser.newPage()
-		
+
 		async function scrapeCurrentPage(outerURL){
 			console.log(`Navigating to ${outerURL}...`)
 			// navigate to the selected page
@@ -20,15 +18,16 @@ const scraperObject = {
 
 			const outerPageStatus = await databaseAccessor.isURLNewNode(outerURL)
 
+			//  detect first, so that the base page event can be updated
+			if (DETECT_NON_RESTFUL){
+				await detect(browser, page, databaseAccessor)
+			}
+
 			if (outerPageStatus){
 				outerPageName = await databaseAccessor.setNewPageNodeFromPage(page)
 			} else {
 				outerPageName = await databaseAccessor.updatePageNodeFromPage(page)
-			}			
-			
-			if (DETECT_NON_RESTFUL){
-				await detect(browser, page, databaseAccessor)
-			}
+			}						
 
 			// scape all anchors on the page
 			let urls = await page.$$eval('a', anchors => {
@@ -70,9 +69,6 @@ const scraperObject = {
 
 		await scrapeCurrentPage(url) 
 		await page.close();
-		// only write to the json when all the links are complete
-		// fs.writeFileSync('./listOfLinks.json', JSON.stringify(pageTracker))
-
     }
 }
 

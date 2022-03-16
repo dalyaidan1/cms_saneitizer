@@ -7,7 +7,7 @@ class DatabaseAccessor {
         this.domainHome = domainHome
     }
 
-    async setNewPageNodeFromPage(page, options=null){
+    async setNewPageNodeFromPage(page, options={}){
         const url = options["url"] === undefined
             ? await page.url()
             : options["url"]
@@ -22,7 +22,7 @@ class DatabaseAccessor {
 
         const title = options["title"] === undefined
             ? this.helper.sanitizeTitle(await page.title())
-            : options["title"]
+            : this.helper.sanitizeTitle(options["title"])
 
         const content = options["content"] === undefined 
             ? this.sanitize( 
@@ -410,9 +410,6 @@ class DatabaseAccessor {
             }) 
         return children
     }
-
-
-    getMaxLayer
 
     logError(error, url){
         console.log(url, error)        
