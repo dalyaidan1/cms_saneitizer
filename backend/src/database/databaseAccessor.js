@@ -257,7 +257,8 @@ class DatabaseAccessor {
         await session
             .run(
                 `MATCH (node) 
-                RETURN toInteger(max(node.layer)) as layer`)
+                RETURN toInteger(max(node.layer)) as layer
+                `)
             .then(result => {
                 max = result.records[0].get('layer').toNumber()
             })
@@ -385,6 +386,33 @@ class DatabaseAccessor {
         // console.log(sanitized)
         return sanitized
     }
+
+    async getNodeChildren(nodeName){
+        let session = await this.driver.session()
+        let children
+        await session
+            .run(
+                `OPTIONAL MATCH (p)-[:CHILD]->(c) 
+                WHERE p.name = "${nodeName}" 
+                RETURN c`)
+            .then(result => {
+                if (result !== null){
+                    children = result.records.map(node => {
+                        return node.get('c')
+                    })
+                }
+            })
+            .catch(error => {
+                this.logError(error, nodeName);
+            })
+            .then(async () => {
+                await session.close()                
+            }) 
+        return children
+    }
+
+
+    getMaxLayer
 
     logError(error, url){
         console.log(url, error)        

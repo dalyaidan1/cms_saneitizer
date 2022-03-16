@@ -7,6 +7,10 @@ yarn-error.log*
 lerna-debug.log*
 outputHistory
 
+# Exports
+public/html/
+public/html/*.html
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
