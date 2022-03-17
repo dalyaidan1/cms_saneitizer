@@ -1,11 +1,11 @@
 const {detect} = require('./contentShiftDetector')
 const DETECT_NON_RESTFUL = true
-
+let DOMAIN
 
 const scraperObject = {
     async scraper(browser, url, databaseAccessor){
         let page = await browser.newPage()
-
+		DOMAIN = url
 		async function scrapeCurrentPage(outerURL){
 			console.log(`Navigating to ${outerURL}...`)
 
@@ -26,7 +26,8 @@ const scraperObject = {
 
 			if (outerPageStatus){
 				outerPageName = await databaseAccessor.setNewPageNodeFromPage(page)
-			} else {
+			} 
+			else {
 				outerPageName = await databaseAccessor.updatePageNodeFromPage(page)
 			}						
 
@@ -44,14 +45,17 @@ const scraperObject = {
 			// remove duplicates
 			urls = Array.from(new Set(urls));
 
+			// check that the domain is correct
+			urls = urls.filter(url => url.match(DOMAIN) !== null)
+
 			// make each url a new node...
 			for (let url in urls){
 				// const innerPageName = databaseAccessor.removeDomainFromURL(url)						
 				if (await databaseAccessor.isURLNewNode(urls[url])){
 					await databaseAccessor.setNewPageNodeFromURL(urls[url], outerURL)
 				} else {
-					await databaseAccessor.updatePageNodeOccurrences(urls[url], outerURL)
-					url[urls] = undefined						
+					// await databaseAccessor.updatePageNodeOccurrences(urls[url], outerURL)
+					urls[url] = undefined						
 				}
 			}
 
@@ -62,7 +66,7 @@ const scraperObject = {
 					}
 				}		
 			}
-
+			return
 		}
 		// make sure the first url has a "/" at the end
 		if (url.match(/[^\/]$/) !== "/"){

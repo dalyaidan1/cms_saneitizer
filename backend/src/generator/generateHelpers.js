@@ -11,6 +11,7 @@ function formatAnchorURL(url){
 
 function deScapeContent(content){
     content = content.replace(/\\\"/g, '"')
+    content = content.replace(/\/"\//g, '"')
     content = content.replace(/""/g, "'")    
     return content
 }

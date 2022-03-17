@@ -45,10 +45,17 @@ function removeDomainFromURL(url, domainHome){
     return url.replace(domainHome, '')
 }
 
+function formatPageName(url, domainHome){
+    url = removeDomainFromURL(url, domainHome)
+    url = url.replace(/\/$/, '')
+    return url
+}
+
 
 module.exports = {
     layerIsAChildOfOtherLayer,
     getLayer,
     sanitizeTitle,
     removeDomainFromURL,
+    formatPageName,
 }

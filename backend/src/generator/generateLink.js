@@ -7,7 +7,7 @@ const {
 } = require('./generateHelpers')
 
 async function newLink(node, makeDirectory){
-    let tempLink = `<li><a href="${formatAnchorURL(node.properties.name)}">${node.properties.title}</a></li>\n`
+    let tempLink = `<li><a href="${formatAnchorURL(node.properties.name)}.html">${node.properties.title}</a></li>\n`
     fs.appendFileSync(NAV_FILE, tempLink)
     if (makeDirectory){
         const filePathName = `public/html${node.properties.name}`.match(/\.html/) !== null 

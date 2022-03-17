@@ -213,7 +213,6 @@ async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=TO
                 let root = document.querySelector(`[data-cms-saneitizer="${rootElementID}"]`)        
                 return {
                     html:root.innerHTML,
-                    parentID:root.parentElement.dataset.cmsSaneitizer, 
                 }
             }, rootElementID)
         }
