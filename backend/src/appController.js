@@ -6,13 +6,13 @@ const exporter = require('./generator/export')
 // TODO make sure that it does not have a "/" at the end
 const domainHome = 'https://quotes.toscrape.com'
 
-async function scrapeAll(browserInstance, databaseDriver){
+async function scrapeAll(browserInstance, databaseDriver, expressApp){
 	let browser
 	const timeStart = Date.now()
 	try{
 		browser = await browserInstance
 
-		const databaseAccessor = await new DatabaseAccessor(databaseDriver, domainHome)
+		const databaseAccessor = await new DatabaseAccessor(databaseDriver, domainHome)		
 
 		await pageScraper.scraper(browser, domainHome, databaseAccessor)
 		let timeEnd = Date.now()
