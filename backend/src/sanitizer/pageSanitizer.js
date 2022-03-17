@@ -11,12 +11,12 @@ function pageSanitizer(page){
     // remove ads
 
     // beautify
-    // page = prettier.format(page, {parser:"html"})
+    page = prettier.format(page, {parser:"html"})
 
     // escape ",',/ and \ for the database
-    // page = page.replace(/\\/g, /\\\\/)
-    page = page.replace(/\'/g, /""/)
-    page = page.replace(/\"/g, /\\\"/)
+    // page = page.replace(/\\/g, /\\\\/)    
+    page = page.replace(/\"/g, '\\\"')
+    page = page.replace(/\'/g, '""')
 
     // console.log(page);
     
