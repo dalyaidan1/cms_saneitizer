@@ -10,9 +10,14 @@ async function newLink(node, makeDirectory){
     let tempLink = `<li><a href="${formatAnchorURL(node.properties.name)}.html">${node.properties.title}</a></li>\n`
     fs.appendFileSync(NAV_FILE, tempLink)
     if (makeDirectory){
-        const filePathName = `public/html${node.properties.name}`.match(/\.html/) !== null 
-        ? `public/html${node.properties.name}`
-        : `public/html${node.properties.name}.html`
+        let nodeName = node.properties.name
+        if ((nodeName).match(/^\//) === null){
+            nodeName = `/index${nodeName}`
+        }
+        const filePathName = `public/html${nodeName}`.match(/\.html/) !== null 
+        ? `public/html${nodeName}`
+        : `public/html${nodeName}.html`
+        
         fs.writeFileSync(filePathName, deScapeContent(node.properties.content))
     }
 }
