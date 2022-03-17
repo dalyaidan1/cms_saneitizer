@@ -9,10 +9,6 @@ const scraperObject = {
 		async function scrapeCurrentPage(outerURL){
 			console.log(`Navigating to ${outerURL}...`)
 
-			if (outerURL === "http://books.toscrape.com/catalogue/page-2.html"){
-				console.log("skdfnjksd");
-			}
-
 			// navigate to the selected page
 			await page.goto(outerURL)
 			// wait for content to load
@@ -21,7 +17,7 @@ const scraperObject = {
 			// const parentURLKey = url === domainHome ? "/" : removeDomainFromURL(url)
 			let outerPageName
 
-			const outerPageStatus = await databaseAccessor.isURLNewNode(outerURL)
+			let outerPageStatus = await databaseAccessor.isURLNewNode(outerURL)
 
 			//  detect first, so that the base page event can be updated
 			if (DETECT_NON_RESTFUL){
@@ -49,21 +45,22 @@ const scraperObject = {
 			urls = Array.from(new Set(urls));
 
 			// make each url a new node...
-			for (let url of urls){
+			for (let url in urls){
 				// const innerPageName = databaseAccessor.removeDomainFromURL(url)						
-				if (await databaseAccessor.isURLNewNode(url)){
-					await databaseAccessor.setNewPageNodeFromURL(url, outerURL)
+				if (await databaseAccessor.isURLNewNode(urls[url])){
+					await databaseAccessor.setNewPageNodeFromURL(urls[url], outerURL)
 				} else {
-					await databaseAccessor.updatePageNodeOccurrences(url, outerURL)							
+					await databaseAccessor.updatePageNodeOccurrences(urls[url], outerURL)
+					url[urls] = undefined						
 				}
 			}
 
-			for(let url in urls){
-				// console.log(`${urls[url]} again`);
-				if (!(await databaseAccessor.pageSanitized(urls[url]))){				
-					return await scrapeCurrentPage(urls[url])
-				}
-				
+			for(let url in urls){				
+				if (urls[url] !== undefined ){
+					if (!(await databaseAccessor.pageSanitized(urls[url]))){			
+						await scrapeCurrentPage(urls[url])
+					}
+				}		
 			}
 
 		}

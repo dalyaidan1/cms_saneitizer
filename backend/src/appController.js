@@ -4,7 +4,7 @@ const treeConnector = require('./sanitizer/treeConnector')
 const exporter = require('./generator/export')
 
 // TODO make sure that it does not have a "/" at the end
-const domainHome = 'http://books.toscrape.com'
+const domainHome = 'https://books.toscrape.com'
 
 async function scrapeAll(browserInstance, databaseDriver){
 	let browser

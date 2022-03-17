@@ -7,9 +7,6 @@ function layerIsAChildOfOtherLayer(innerPageURL, outerPageURL){
     const outerLayerEndURL =  String(outerPageURL.match(/([^\/]*$)/))
     //  this is the parent of the end part of a url like in "domain.com/about/our-history" the about
     const innerLayerParentURL = String((innerPageURL.replace(/\/[^\/]*$/, '')).match(/[^\/]*$/))
-    if ((innerLayerNumber - outerLayerNumber) === 1){
-        console.log(outerLayerNumber,innerLayerNumber,outerLayerEndURL,innerLayerParentURL)
-    }
 
     // check the parent layer level is 1 lower than the child
     // check the parent name is really the name before child 
