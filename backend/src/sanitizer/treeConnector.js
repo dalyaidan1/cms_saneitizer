@@ -1,14 +1,14 @@
 const neo4j = require('neo4j-driver')
 
-function stripURLLayerBy(url, number){
+function stripNameLayerBy(name, number){
     // subtract 2 to account for http:// 
-    const count = (url.match(/\//g) || []).length - 2
+    const count = (name.match(/\//g) || []).length
 
     if (count === number){
-        return url
+        return name
     }
-    url = String(url.replace(/(\/[^\/]*$)/, ''))
-    return stripURLLayerBy(url, number)
+    name = String(name.replace(/(\/[^\/]*$)/, ''))
+    return stripNameLayerBy(name, number)
 }
 
 const connectLayers = {
@@ -22,7 +22,7 @@ const connectLayers = {
 
             // const childNodeURLs = childLayerNodes.map(node => node.url)
             for (let childNode in childLayerNodes){
-                let parentURL = stripURLLayerBy(childLayerNodes[childNode].properties.url, layer-1)
+                let parentURL = stripNameLayerBy(childLayerNodes[childNode].properties.name, layer-1)
                 if (await databaseAccessor.isURLNewNode(parentURL)){
                     // make new Directory Node from "/" to end of stripped URL                    
                     // set it as a parent of the childLayerNodes[childNode].url and vice-versa

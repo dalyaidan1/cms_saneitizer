@@ -4,7 +4,7 @@ const treeConnector = require('./sanitizer/treeConnector')
 const exporter = require('./generator/export')
 
 // TODO make sure that it does not have a "/" at the end
-const domainHome = 'http://books.toscrape.com'
+const domainHome = 'https://quotes.toscrape.com'
 
 async function scrapeAll(browserInstance, databaseDriver){
 	let browser
@@ -14,23 +14,29 @@ async function scrapeAll(browserInstance, databaseDriver){
 
 		const databaseAccessor = await new DatabaseAccessor(databaseDriver, domainHome)
 
-		// await pageScraper.scraper(browser, domainHome, databaseAccessor)
+		await pageScraper.scraper(browser, domainHome, databaseAccessor)
+		let timeEnd = Date.now()
+		console.log(`Scrape Time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
+		// close puppeteer browser
+		await browser.close()
 
-		// // // // close puppeteer browser
-		// await browser.close()
 
+		//clean up page structure for navigation and exporting
+		await treeConnector.parseLayers(databaseAccessor)
+		timeEnd = Date.now()
+		console.log(`Connect time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
 
-		// // // clean up page structure for navigation and exporting
-		// await treeConnector.parseLayers(databaseAccessor)
-
+		console.log("Exporting")
 		await exporter.generateExport(databaseAccessor, true)
+		timeEnd = Date.now()
+		console.log(`Export time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
 
 		// close database driver
 		databaseDriver.close()
 
 		// see how long it took
-		const timeEnd = Date.now()
-		console.log(`${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minutes`)
+		timeEnd = Date.now()
+		console.log(`Total time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
 		
 	}
 	catch(err){

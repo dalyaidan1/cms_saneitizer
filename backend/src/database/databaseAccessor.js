@@ -13,11 +13,11 @@ class DatabaseAccessor {
             : options["url"]
 
         const name = options["name"] === undefined
-            ?  this.helper.removeDomainFromURL(url, this.domainHome)
-            :  this.helper.removeDomainFromURL(options["name"], this.domainHome)
+            ?  this.helper.formatPageName(url, this.domainHome)
+            :  this.helper.formatPageName(options["name"], this.domainHome)
 
         const layer = options["layer"] === undefined
-            ? this.helper.getLayer(url)
+            ? this.helper.getLayer(name)
             : options["layer"]
 
         const title = options["title"] === undefined
@@ -26,8 +26,9 @@ class DatabaseAccessor {
 
         const content = options["content"] === undefined 
             ? this.sanitize( 
-                await page.$eval('body', content => content.innerHTML))
-            : this.sanitize(options["content"])
+                await page.$eval('body', content => content.outerHTML),
+                this.domainHome)
+            : this.sanitize(options["content"], this.domainHome)
         
         let sanitized = false
         if (content.length !== 0){
@@ -62,7 +63,7 @@ class DatabaseAccessor {
     async updatePageNodeFromPage(page){
         const url = await page.url()
 
-        const name = this.helper.removeDomainFromURL(url, this.domainHome)
+        const name = this.helper.formatPageName(url, this.domainHome)
 
         let pageMatch;
 
@@ -83,7 +84,7 @@ class DatabaseAccessor {
             })
         let session2 = await this.driver.session()
         // if its sanitized just update its occurrences 
-        if (pageMatch.sanitized){
+        if (pageMatch.properties.sanitized){
             await session2.run(
                 `MATCH (page:Page {name: '${name}'})
                 SET page.occurrences = $occurrences`, {
@@ -98,7 +99,8 @@ class DatabaseAccessor {
             // if not, need to update it
             const title = this.helper.sanitizeTitle(await page.title())
             const content = this.sanitize(
-                await page.$eval('body', content => content.innerHTML)
+                await page.$eval('body', content => content.outerHTML),
+                this.domainHome
                 )
             let sanitized = false
             if (content.length !== 0){
@@ -124,9 +126,9 @@ class DatabaseAccessor {
     async setNewPageNodeFromURL(url, outerPageURL = null){
         // const url = await page.url()
 
-        const name = this.helper.removeDomainFromURL(url, this.domainHome)
+        const name = this.helper.formatPageName(url, this.domainHome)
 
-        const layer = this.helper.getLayer(url)
+        const layer = this.helper.getLayer(name)
 
         let session = await this.driver.session()
         // set the page props
@@ -153,7 +155,7 @@ class DatabaseAccessor {
             })
             // if setting an inner page
             if (outerPageURL !== null){
-                const outerPageName = this.helper.removeDomainFromURL(outerPageURL, this.domainHome)
+                const outerPageName = this.helper.formatPageName(outerPageURL, this.domainHome)
                 let session2 = await this.driver.session()
                 if (this.helper.layerIsAChildOfOtherLayer(url, outerPageURL)){
                     await session2.run(
@@ -191,7 +193,7 @@ class DatabaseAccessor {
     }
 
     async updatePageNodeOccurrences(url, outerPageURL = null){
-        const name = this.helper.removeDomainFromURL(url, this.domainHome)
+        const name = this.helper.formatPageName(url, this.domainHome)
         let session = await this.driver.session()
         await session
             .run(
@@ -297,8 +299,8 @@ class DatabaseAccessor {
 
 
     async updateNodeRelationship(childURL, parentURL){
-        const childName = this.helper.removeDomainFromURL(childURL, this.domainHome)
-        const parentName = this.helper.removeDomainFromURL(parentURL, this.domainHome)
+        const childName = this.helper.formatPageName(childURL, this.domainHome)
+        const parentName = this.helper.formatPageName(parentURL, this.domainHome)
         let session = await this.driver.session()
         await session.run(
             `MATCH 
@@ -319,7 +321,7 @@ class DatabaseAccessor {
     }
 
     async getNodeTypeFromURL(url){
-        const name = this.helper.removeDomainFromURL(url, this.domainHome)
+        const name = this.helper.formatPageName(url, this.domainHome)
         let type = "Page"
         let session = await this.driver.session()
         await session
@@ -341,7 +343,7 @@ class DatabaseAccessor {
     // check if a url is already in the tracking oject
     // returns true or false
     async isURLNewNode(url) {
-        const name = this.helper.removeDomainFromURL(url, this.domainHome)
+        const name = this.helper.formatPageName(url, this.domainHome)
         let newNode = false
         let session = await this.driver.session()
         await session
@@ -365,7 +367,7 @@ class DatabaseAccessor {
 
 
     async pageSanitized(url){
-        const name = this.helper.removeDomainFromURL(url, this.domainHome)
+        const name = this.helper.formatPageName(url, this.domainHome)
         let sanitized = false
         let session = await this.driver.session()
         await session
