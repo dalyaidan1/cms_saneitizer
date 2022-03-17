@@ -25,8 +25,12 @@ function pageSanitizer(page, domain){
     // basic sanitization
     page = sanitizeHTML(page)
 
-    // clean tags --remove tags user doesn't want
+    // clean tags 
     // make a real page to output, get outerHTML, remove it, then import back?
+    // -- remove nav
+    // -- remove footer 
+    // --remove tags user doesn't want
+    
     
     // remove ads
     // npm package
