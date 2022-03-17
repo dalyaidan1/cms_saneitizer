@@ -26,8 +26,9 @@ class DatabaseAccessor {
 
         const content = options["content"] === undefined 
             ? this.sanitize( 
-                await page.$eval('body', content => content.outerHTML))
-            : this.sanitize(options["content"])
+                await page.$eval('body', content => content.outerHTML),
+                this.domainHome)
+            : this.sanitize(options["content"], this.domainHome)
         
         let sanitized = false
         if (content.length !== 0){
@@ -98,7 +99,8 @@ class DatabaseAccessor {
             // if not, need to update it
             const title = this.helper.sanitizeTitle(await page.title())
             const content = this.sanitize(
-                await page.$eval('body', content => content.outerHTML)
+                await page.$eval('body', content => content.outerHTML),
+                this.domainHome
                 )
             let sanitized = false
             if (content.length !== 0){
