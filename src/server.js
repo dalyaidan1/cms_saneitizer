@@ -20,7 +20,7 @@ app.get('/', function (req, res) {
 
 
 // start app route
-app.post('/start', (req, res) => {
+app.post('/api/start', (req, res) => {
     let decodedResponse = req.body
     console.log(decodedResponse)
     if (decodedResponse["start"]){
