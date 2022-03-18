@@ -1,5 +1,6 @@
 import './App.css';
 import { postData } from './fetch';
+import ConfigForm from './components/config/ConfigForm'
 
 async function startApp(){
   let data = {start:true}
@@ -16,6 +17,7 @@ function App() {
           }}>
             Start App
           </button>
+          <ConfigForm />
     </section>
   );
 }
