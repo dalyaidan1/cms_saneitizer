@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, Fragment} from 'react'
+import ArrayEmulator from './ArrayEmulator'
 
 function ConfigForm(){
     const [config, setConfig] = useState({
@@ -184,6 +185,8 @@ function ConfigForm(){
 
     const [nodePropElements, setNodePropElements] = useState([])
 
+    const [outputArray, setOutputArray] = useState([])
+
     useEffect(() => {
         mapNodeProps()
       }, [])
@@ -193,18 +196,19 @@ function ConfigForm(){
         const allAttributes = Object.keys(config.ATTRIBUTES)
         for (let attribute of allAttributes){
             newElements.push(
-                <>
-                    <label for={`${attribute}Attributes`}>{attribute}</label>
+                <Fragment key={newElements.length}>
+                    <label htmlFor={`${attribute}Attributes`}>{attribute}</label>
                     <input 
                         type='checkbox' 
-                        name={`${attribute}Attributes`}
-                        checked={config.ATTRIBUTES[attribute].check}
+                        name={`${attribute}Attributes`}                        
+                        defaultChecked={config.ATTRIBUTES[attribute].check}
                         onChange={(e) => {
+                            console.log(config.ATTRIBUTES[attribute].check);
                             config.ATTRIBUTES[attribute].check = e.target.checked
                             setConfig({...config})
                         }}/>
                     {/* TODO: make a new comp for mimicking an array*/}
-                </>
+                </Fragment>
             )
         }
         setNodePropElements(newElements)
@@ -212,23 +216,50 @@ function ConfigForm(){
 
     return (
         <form>
+
             <legend>Scraping Config</legend>
             
-            <label htmlFor={config.DETECT_NON_RESTFUL}>Detect Non-restful changes</label>
+            <label htmlFor={"DETECT_NON_RESTFUL"}>Detect Non-restful changes</label>
             <input 
                 type='checkbox'
-                name={config.DETECT_NON_RESTFUL}
-                checked={config.DETECT_NON_RESTFUL}
+                name={"DETECT_NON_RESTFUL"}
+                defaultChecked={config.DETECT_NON_RESTFUL}
                 onChange={(e) => {
                     config.DETECT_NON_RESTFUL= e.target.checked
                     setConfig({...config})
-                }}
-                 />
+                }} />
 
-            <fieldset>
+            {config.DETECT_NON_RESTFUL 
+            && <fieldset>
                 <legend>Attributes</legend>
                 {nodePropElements}
-            </fieldset>
+            </fieldset>}
+
+            <ArrayEmulator 
+                outputArray={outputArray}
+                setOutputArray={setOutputArray} />
+
+            <label htmlFor={"TOLERANCE"}>Tolerance</label>
+            <input 
+                type='number'
+                min='0'
+                name={"TOLERANCE"}
+                defaultValue={config.TOLERANCE}
+                onChange={(e) => {
+                    config.TOLERANCE= parseInt(e.target.value)
+                    setConfig({...config})
+                }} />
+
+            <label htmlFor={"RADIUS"}>Radius</label>
+            <input 
+                type='number'
+                min='0'
+                name={"RADIUS"}
+                defaultValue={config.RADIUS}
+                onChange={(e) => {
+                    config.RADIUS= parseInt(e.target.value)
+                    setConfig({...config})
+                }} />
             
         </form>
     )
