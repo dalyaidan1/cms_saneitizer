@@ -1,5 +1,6 @@
 import React, { useState, Fragment } from "react";
-// import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 function ArrayEmulator(props){   
     const [inputs, setInputs] = useState([
@@ -10,6 +11,7 @@ function ArrayEmulator(props){
                 name={`${props.name}Input0`}
                 key={0}
                 data-id="0"
+                defaultValue={props.outputArray[0]}
                 onChange={(e) => {
                     props.outputArray[0] = e.target.value
                     props.setOutputArray([...props.outputArray])
@@ -27,6 +29,7 @@ function ArrayEmulator(props){
                     name={`${props.name}Input${newDataID}`}
                     key={newDataID}
                     data-id={newDataID}
+                    defaultValue={props.outputArray[newDataID]}
                     onChange={(e) => {
                         props.outputArray[newDataID] = e.target.value
                         props.setOutputArray([...props.outputArray])
@@ -35,18 +38,39 @@ function ArrayEmulator(props){
         )
         setInputs([...inputs])
     }
+
+    function removeInput(){
+        // remove internally
+        inputs.pop()
+        setInputs([...inputs])
+
+        // remove externally
+        props.outputArray.pop()
+        props.setOutputArray([...props.outputArray])
+    }
     
 
     return (
         <>
             {inputs}
+
+            {inputs.length > 1 
+            && <button
+            onClick={(e) => {
+             e.preventDefault()
+                removeInput()
+            }} >
+                <RemoveCircleOutlineIcon /> 
+             </button> }
+
             <button
                onClick={(e) => {
                 e.preventDefault()
                 addInput()
-               }} > +
-                   {/* <AddCircleOutlineIcon />  */}
+               }} >
+                   <AddCircleOutlineIcon /> 
                 </button>
+            
         </>
     )
 }

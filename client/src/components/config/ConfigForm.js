@@ -185,7 +185,7 @@ function ConfigForm(){
 
     const [nodePropElements, setNodePropElements] = useState([])
 
-    const [outputArray, setOutputArray] = useState([])
+    const [elementsToIgnore, setElementsToIgnore] = useState([])
 
     useEffect(() => {
         mapNodeProps()
@@ -206,13 +206,21 @@ function ConfigForm(){
                             console.log(config.ATTRIBUTES[attribute].check);
                             config.ATTRIBUTES[attribute].check = e.target.checked
                             setConfig({...config})
+                            mapNodeProps()
                         }}/>
-                    {/* TODO: make a new comp for mimicking an array*/}
+                    {config.ATTRIBUTES[attribute].check
+                    &&  <ArrayEmulator 
+                            outputArray={config.ATTRIBUTES[attribute].ignoreWhenContaining}
+                            setOutputArray={(data) => {
+                                config.ATTRIBUTES[attribute].ignoreWhenContaining = data
+                                setConfig({...config})}} />
+                    }
+                    
                 </Fragment>
             )
         }
         setNodePropElements(newElements)
-    }    
+    }
 
     return (
         <form>
@@ -234,10 +242,13 @@ function ConfigForm(){
                 <legend>Attributes</legend>
                 {nodePropElements}
             </fieldset>}
-
-            <ArrayEmulator 
-                outputArray={outputArray}
-                setOutputArray={setOutputArray} />
+            
+            <fieldset>
+                <legend>Element to Ignore</legend>
+                <ArrayEmulator 
+                    outputArray={elementsToIgnore}
+                    setOutputArray={setElementsToIgnore} />
+            </fieldset>
 
             <label htmlFor={"TOLERANCE"}>Tolerance</label>
             <input 
