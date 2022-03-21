@@ -1,35 +1,48 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 function ArrayEmulator(props){   
-    const [inputs, setInputs] = useState([
+
+    const initialState = [
         (<Fragment key={0}>
-            <label htmlFor={`${props.name}Input0`}>{props.name}</label>
+            <label 
+                className='semanticVisible'
+                htmlFor={`${props.name}Input0`}>{props.name}</label>
             <input 
                 type="text"
                 name={`${props.name}Input0`}
                 key={0}
                 data-id="0"
                 defaultValue={props.outputArray[0]}
+                disabled={props.disabled}
                 onChange={(e) => {
                     props.outputArray[0] = e.target.value
                     props.setOutputArray([...props.outputArray])
                 }} />
         </Fragment>)
-    ])
+    ]
+
+    useEffect(() => {
+        setInputs(initialState)
+    }, [props.disabled])
+
+    const [inputs, setInputs] = useState(initialState)
 
     function addInput(){
         let newDataID = inputs.length
         inputs[newDataID] = (
             <Fragment key={newDataID}>
-                <label htmlFor={`${props.name}Input${newDataID}`}>{props.name}</label>
+                <label 
+                    className='semanticVisible'
+                    htmlFor={`${props.name}Input${newDataID}`}>{props.name}</label>
                 <input 
                     type="text"
                     name={`${props.name}Input${newDataID}`}
                     key={newDataID}
                     data-id={newDataID}
                     defaultValue={props.outputArray[newDataID]}
+                    disabled={props.disabled}
                     onChange={(e) => {
                         props.outputArray[newDataID] = e.target.value
                         props.setOutputArray([...props.outputArray])
@@ -51,27 +64,29 @@ function ArrayEmulator(props){
     
 
     return (
-        <>
+        <fieldset className='arrayEmulator'>
             {inputs}
 
-            {inputs.length > 1 
-            && <button
-            onClick={(e) => {
-             e.preventDefault()
-                removeInput()
-            }} >
-                <RemoveCircleOutlineIcon /> 
-             </button> }
-
-            <button
-               onClick={(e) => {
-                e.preventDefault()
-                addInput()
-               }} >
-                   <AddCircleOutlineIcon /> 
+            <fieldset>
+                <button
+                    disabled={props.disabled}
+                    onClick={(e) => {
+                        e.preventDefault()
+                        addInput()
+                    }} >
+                    <AddCircleOutlineIcon /> 
                 </button>
+                {inputs.length > 1 
+                && <button
+                onClick={(e) => {
+                    e.preventDefault()
+                    removeInput()
+                }} >
+                    <RemoveCircleOutlineIcon /> 
+                </button> }
+            </fieldset>
             
-        </>
+        </fieldset>
     )
 }
 

@@ -1,7 +1,7 @@
 import React, {useState, useEffect, Fragment} from 'react'
 import ArrayEmulator from './ArrayEmulator'
 
-function ConfigForm(){
+function ConfigForm(props){
     const [config, setConfig] = useState({
         DETECT_NON_RESTFUL : true,
         ATTRIBUTES: {
@@ -191,32 +191,41 @@ function ConfigForm(){
         mapNodeProps()
       }, [])
 
+    function submit(){
+        this.props.submit
+    }
+
     const mapNodeProps = () => {
         let newElements = []
         const allAttributes = Object.keys(config.ATTRIBUTES)
         for (let attribute of allAttributes){
             newElements.push(
-                <Fragment key={newElements.length}>
-                    <label htmlFor={`${attribute}Attributes`}>{attribute}</label>
-                    <input 
-                        type='checkbox' 
-                        name={`${attribute}Attributes`}                        
-                        defaultChecked={config.ATTRIBUTES[attribute].check}
-                        onChange={(e) => {
-                            console.log(config.ATTRIBUTES[attribute].check);
-                            config.ATTRIBUTES[attribute].check = e.target.checked
-                            setConfig({...config})
-                            mapNodeProps()
-                        }}/>
-                    {config.ATTRIBUTES[attribute].check
-                    &&  <ArrayEmulator 
+                <tr
+                    key={newElements.length}>
+                    <td>
+                        <label htmlFor={`${attribute}Attributes`}>{attribute}</label>
+                    </td>
+                    <td>
+                        <input 
+                            type='checkbox' 
+                            name={`${attribute}Attributes`}                        
+                            defaultChecked={config.ATTRIBUTES[attribute].check}
+                            onChange={(e) => {
+                                config.ATTRIBUTES[attribute].check = e.target.checked
+                                setConfig({...config})
+                                mapNodeProps()
+                            }}/>
+                    </td>
+                    <td>
+                        <ArrayEmulator 
                             outputArray={config.ATTRIBUTES[attribute].ignoreWhenContaining}
                             setOutputArray={(data) => {
                                 config.ATTRIBUTES[attribute].ignoreWhenContaining = data
-                                setConfig({...config})}} />
-                    }
+                                setConfig({...config})}}
+                            disabled={!(config.ATTRIBUTES[attribute].check)} />
+                    </td>
                     
-                </Fragment>
+                </tr> 
             )
         }
         setNodePropElements(newElements)
@@ -227,21 +236,34 @@ function ConfigForm(){
 
             <legend>Scraping Config</legend>
             
-            <label htmlFor={"DETECT_NON_RESTFUL"}>Detect Non-restful changes</label>
-            <input 
-                type='checkbox'
-                name={"DETECT_NON_RESTFUL"}
-                defaultChecked={config.DETECT_NON_RESTFUL}
-                onChange={(e) => {
-                    config.DETECT_NON_RESTFUL= e.target.checked
-                    setConfig({...config})
-                }} />
+            <label htmlFor={"DETECT_NON_RESTFUL"}>
+                <input 
+                    type='checkbox'
+                    name={"DETECT_NON_RESTFUL"}
+                    defaultChecked={config.DETECT_NON_RESTFUL}
+                    onChange={(e) => {
+                        config.DETECT_NON_RESTFUL= e.target.checked
+                        setConfig({...config})
+                    }} />
+                Detect Non-restful changes</label>            
 
             {config.DETECT_NON_RESTFUL 
-            && <fieldset>
-                <legend>Attributes</legend>
-                {nodePropElements}
-            </fieldset>}
+            && <>
+            <fieldset className='attributes'>
+                <legend className='semanticVisible'>Attributes</legend>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Attributes</th>
+                            <th>Check</th>
+                            <th>Ignore when Containing</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {nodePropElements}
+                    </tbody>
+                </table>
+            </fieldset>
             
             <fieldset>
                 <legend>Element to Ignore</legend>
@@ -270,6 +292,15 @@ function ConfigForm(){
                 onChange={(e) => {
                     config.RADIUS= parseInt(e.target.value)
                     setConfig({...config})
+                }} />
+                </> }
+
+            <input 
+                type="submit"
+                value="Next"
+                onClick={(e) => {
+                    e.preventDefault()
+                    props.submit()
                 }} />
             
         </form>
