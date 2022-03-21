@@ -13,12 +13,8 @@ function Nav(){
                     <MenuIcon/>                      
                 </li>
                 <li>
-                    <span>Config</span>
+                    <span>Setup</span>
                     <CircleIcon />                               
-                </li>  
-                <li>
-                    <span>Start</span>
-                    <CircleOutlinedIcon />                               
                 </li>  
                 <li>
                     <span>Run</span>

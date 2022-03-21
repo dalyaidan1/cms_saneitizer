@@ -4,6 +4,11 @@ import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined';
 
 function ConfigForm(props){
     const [config, setConfig] = useState({
+        DOMAIN:"",
+        DRAW_PAGE_TITLE_FROM : {
+            pageTitle : true,
+            urlSnippet : false
+        },
         DETECT_NON_RESTFUL : true,
         ATTRIBUTES: {
             animationend: {
@@ -192,10 +197,6 @@ function ConfigForm(props){
         mapNodeProps()
       }, [])
 
-    function submit(){
-        this.props.submit
-    }
-
     const mapNodeProps = () => {
         let newElements = []
         const allAttributes = Object.keys(config.ATTRIBUTES)
@@ -235,7 +236,52 @@ function ConfigForm(props){
     return (
         <form className='configForm' >
 
-            <legend>RESTful Detection Config</legend>
+            <legend>Setup</legend>
+
+            <label htmlFor={"DOMAIN"}><span>* </span>Domain Name</label>
+            <input 
+                type='text'
+                name={"DOMAIN"}
+                placeholder='https://www.domain.com'
+                onChange={(e) => {
+                    config.DOMAIN= e.target.value
+                    setConfig({...config})
+                }} 
+                required={true} />
+
+            <fieldset>
+                <legend>Draw page titles from</legend>
+                <div>
+                    <input 
+                        type='radio'
+                        name='pageTitles'
+                        id='pageTitle'
+                        defaultChecked={config.DRAW_PAGE_TITLE_FROM.pageTitle}
+                        value='pageTitleTag' 
+                        onChange={(e) => {
+                            config.DRAW_PAGE_TITLE_FROM.pageTitle= e.target.checked ? true : false
+                            setConfig({...config})
+                        }} />
+                    <label htmlFor='pageTitle'>                
+                        Page <code>&lt;title&gt;</code> tag
+                    </label>
+                </div>
+                <div>
+                    <input 
+                        type='radio'
+                        name='pageTitles'
+                        id='URL'
+                        defaultChecked={config.DRAW_PAGE_TITLE_FROM.urlSnippet}
+                        value='URLsnippet' 
+                        onChange={(e) => {
+                            config.DRAW_PAGE_TITLE_FROM.urlSnippet= e.target.checked ? true : false
+                            setConfig({...config})
+                        }} />
+                    <label htmlFor='URL'>
+                        URL snippet (last part of a URL to its last "/")
+                    </label>
+                </div>
+            </fieldset>
             
             <label htmlFor={"DETECT_NON_RESTFUL"}>
                 <input 
@@ -246,12 +292,14 @@ function ConfigForm(props){
                         config.DETECT_NON_RESTFUL= e.target.checked
                         setConfig({...config})
                     }} />
-                Detect Non-restful changes</label>            
+                Detect non-restful changes</label>            
 
             {config.DETECT_NON_RESTFUL 
             && <>
             <fieldset className='attributes'>
                 <legend className='semanticVisible'>Attributes</legend>
+                <dfn>When detecting changes on each page, attributes that are checked will be checked for events. 
+                    If a value is inside ignore, the elements event will be ignored when containing that value</dfn>
                 <table>
                     <thead>
                         <tr>
@@ -267,13 +315,27 @@ function ConfigForm(props){
             </fieldset>
             
             <fieldset>
-                <legend>Elements to Ignore</legend>
+                <legend>Elements to ignore</legend>
+                <dfn>Format: ALL CAPS, no special characters and one tag per field. Eg. DIV</dfn>
                 <ArrayEmulator 
                     outputArray={elementsToIgnore}
                     setOutputArray={setElementsToIgnore} />
             </fieldset>
 
+            <label htmlFor={"RADIUS"}>Radius</label>
+            <dfn>When an event is initiated, how many elements away (ancestors) should be checked</dfn>
+            <input 
+                type='number'
+                min='0'
+                name={"RADIUS"}
+                defaultValue={config.RADIUS}
+                onChange={(e) => {
+                    config.RADIUS= parseInt(e.target.value)
+                    setConfig({...config})
+                }} />
+
             <label htmlFor={"TOLERANCE"}>Tolerance</label>
+            <dfn>When an event is initiated, how many elements (ancestors) changing qualifies a new page</dfn>
             <input 
                 type='number'
                 min='0'
@@ -284,16 +346,6 @@ function ConfigForm(props){
                     setConfig({...config})
                 }} />
 
-            <label htmlFor={"RADIUS"}>Radius</label>
-            <input 
-                type='number'
-                min='0'
-                name={"RADIUS"}
-                defaultValue={config.RADIUS}
-                onChange={(e) => {
-                    config.RADIUS= parseInt(e.target.value)
-                    setConfig({...config})
-                }} />
                 </> }
 
             <button type="submit"

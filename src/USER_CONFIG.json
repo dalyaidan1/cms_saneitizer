@@ -1,4 +1,9 @@
 {
+  "DRAW_PAGE_TITLE_FROM" : {
+    "pageTitle" : true,
+    "urlSnippet" : false
+  },
+  "DETECT_NON_RESTFUL" : true,
   "ATTRIBUTES": {
     "animationend": {
       "check": false,

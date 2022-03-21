@@ -12,6 +12,7 @@ function ArrayEmulator(props){
             <input 
                 type="text"
                 name={`${props.name}Input0`}
+                placeholder='myValue1'
                 key={0}
                 data-id="0"
                 defaultValue={props.outputArray[0]}
@@ -41,6 +42,7 @@ function ArrayEmulator(props){
                     name={`${props.name}Input${newDataID}`}
                     key={newDataID}
                     data-id={newDataID}
+                    placeholder={`myValue${newDataID+1}`}
                     defaultValue={props.outputArray[newDataID]}
                     disabled={props.disabled}
                     onChange={(e) => {
