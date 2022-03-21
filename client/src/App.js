@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { postData } from './fetch';
 import ConfigForm from './components/config/ConfigForm'
+import Nav from './components/Nav'
 
 async function startApp(){
   let data = {start:true}
@@ -26,6 +27,8 @@ function App() {
   }
 
   return (
+    <>
+    <Nav />
     <main>
         <section>    
           
@@ -45,7 +48,8 @@ function App() {
           </button> }
           </section>
     </main>
-  );
+    </>
+  )
 }
 
 export default App;
