@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { postData } from './fetch';
 import ConfigForm from './components/config/ConfigForm'
 import Nav from './components/Nav'
+import Run from './components/run/Run'
 
 async function startApp(){
   let data = {start:true}
@@ -38,12 +39,9 @@ function App() {
                 }} /> }    
         
         {view.startApp 
-        && <button 
-            onClick={() => {
-              startApp()
-            }}>
-          Start App
-        </button> }
+        && <Run 
+            startApp={startApp} /> 
+        }
     </main>
     </>
   )
