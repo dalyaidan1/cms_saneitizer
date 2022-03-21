@@ -51,16 +51,25 @@ q:before, q:after {
 	content: none;
 }
 table {
-	border-collapse: collapse;
 	border-spacing: 0;
+  border-radius: 0.3rem;
+}
+
+/*** 2. Global ***/
+:root {
+	--primary-color: #8d753b;
+	--bg-color: #202020;
+  --bg-color-2: #252525;
+  --text-color: #FAFAFA;
+  --button-bg-color: #666666;
 }
 
 
-/*** 2. Global ***/
+
 html, body, #root{
   height: 100%;
-  background-color: #202020;
-  color:#FAFAFA;
+  background-color: var(--bg-color);
+  color:var(--text-color);
 }
 
 body {
@@ -88,7 +97,7 @@ input,
 select,
 textarea,
 button{
-  background-color: #FAFAFA;
+  background-color: var(--text-color);
   border: none;
   border-radius: 0.3rem;
   font-size: 1rem;
@@ -119,6 +128,9 @@ main{
   width: 1px;
 }
 
+*:disabled{
+  cursor: not-allowed;
+}
 section{
   width: 100%;
   height: 100%;
@@ -137,7 +149,7 @@ table td{
 }
 
 table tr:nth-child(even){
-  background-color: #202020;
+  background-color: var(--bg-color);
 }
 
 
@@ -146,7 +158,7 @@ form {
   flex-direction: column;
   align-items: flex-start;
   width: 75%;
-  background-color: #252525;
+  background-color: var(--bg-color-2);
   margin: 2rem;
   border-radius: 0.3rem;
   padding: 2rem 3rem;
@@ -166,7 +178,7 @@ form input[type=checkbox]{
 
 form table{
   min-width: 90%;
-  border: 0.1rem solid #FAFAFA;
+  border: 0.1rem solid var(--text-color);
 }
 
 form > fieldset{
@@ -186,29 +198,54 @@ fieldset table td{
 nav{
   width: 23%;
   height: 100%;
-  background-color: #252525;
+  background-color: var(--bg-color-2);
   position: fixed;
 }
 
-nav ul{
+nav > ul{
   height: 100%;
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  /* justify-content: space-between; */
-  /* align-items: center; */
-  /* box-shadow: 0 0.75rem 2.5rem 0.063rem rgba(241, 241, 241, 0.07); */
-  border-right: 0.1rem solid #FAFAFA;
+  border-right: 0.1rem solid var(--text-color);
 }
 
 nav li{
   font-weight: bold;
   font-size: 1.1rem;
+  margin:1rem 0;
 }
 
-nav li svg{
+nav svg{
+  width: 1.2rem !important;
+  height: 1.2rem !important;
+  color:var(--primary-color);
+}
+
+nav ul li:nth-child(1) svg{
   width: 2.2rem !important;
   height: 2.2rem !important;
+  color:var(--text-color);
+}
+
+nav img{
+  width: 2.8rem;
+  margin-right:0.5rem;
+}
+
+
+nav ul > li{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav ul li:nth-child(1){
+  margin-top:0;
+}
+
+nav ul > li:nth-child(1) span{
+  margin-right: auto;
 }
 
 /* Main */
@@ -218,10 +255,39 @@ nav li svg{
 
 /* check boxes */
 
-legend{
+.configForm > legend{
   font-size: 1.5rem;
   font-weight: bold;
+  padding: 0 0 1rem;
   margin: 0 0 1rem;
+  width: 100%;
+  border-bottom: 0.1rem solid var(--text-color);
+} 
+
+.configForm > label,
+.configForm > fieldset > legend{
+  font-weight: bold;
+}
+
+.configForm > button{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: var(--button-bg-color);
+  color:var(--text-color);
+  padding: 1rem 0;
+  margin: 3rem 0 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.configForm > button svg{
+  margin: 0 0.7rem;
+  vertical-align: middle;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding-top: 0.2rem;
 }
 
 .attributes tr td:nth-child(2),

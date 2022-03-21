@@ -1,5 +1,6 @@
 import React, {useState, useEffect, Fragment} from 'react'
 import ArrayEmulator from './ArrayEmulator'
+import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined';
 
 function ConfigForm(props){
     const [config, setConfig] = useState({
@@ -232,9 +233,9 @@ function ConfigForm(props){
     }
 
     return (
-        <form>
+        <form className='configForm' >
 
-            <legend>Scraping Config</legend>
+            <legend>RESTful Detection Config</legend>
             
             <label htmlFor={"DETECT_NON_RESTFUL"}>
                 <input 
@@ -266,7 +267,7 @@ function ConfigForm(props){
             </fieldset>
             
             <fieldset>
-                <legend>Element to Ignore</legend>
+                <legend>Elements to Ignore</legend>
                 <ArrayEmulator 
                     outputArray={elementsToIgnore}
                     setOutputArray={setElementsToIgnore} />
@@ -295,13 +296,14 @@ function ConfigForm(props){
                 }} />
                 </> }
 
-            <input 
-                type="submit"
+            <button type="submit"
                 value="Next"
                 onClick={(e) => {
                     e.preventDefault()
                     props.submit()
-                }} />
+                }}>
+                Next <DoubleArrowOutlinedIcon/>
+            </button>
             
         </form>
     )

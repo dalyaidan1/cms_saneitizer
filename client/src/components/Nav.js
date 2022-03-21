@@ -1,12 +1,37 @@
 import React, { useState } from "react"
 import MenuIcon from '@mui/icons-material/Menu';
+import CircleIcon from '@mui/icons-material/Circle';
+import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 
 function Nav(){
     return (
         <nav>
-            <ul>
-                <li><MenuIcon/></li>
-                <li>CMS San(e)itizer</li>
+            <ul>                                  
+                <li>
+                    <img src={`images/cmss_proto_long_notext_transp.png`} /> 
+                    <span>CMS San(e)itizer</span>  
+                    <MenuIcon/>                      
+                </li>
+                <li>
+                    <span>Config</span>
+                    <CircleIcon />                               
+                </li>  
+                <li>
+                    <span>Start</span>
+                    <CircleOutlinedIcon />                               
+                </li>  
+                <li>
+                    <span>Run</span>
+                    <CircleOutlinedIcon />                               
+                </li>  
+                <li>
+                    <span>Adjust</span>
+                    <CircleOutlinedIcon />                               
+                </li> 
+                <li>
+                    <span>Export</span>
+                    <CircleOutlinedIcon />                               
+                </li>  
             </ul>
         </nav>
     )
