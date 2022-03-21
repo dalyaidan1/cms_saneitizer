@@ -29,24 +29,21 @@ function App() {
   return (
     <>
     <Nav />
-    <main>
-        <section>    
-          
-          {view.configForm 
-          && <ConfigForm 
-                submit={() => {
-                  setConfig()
-                  updateView("startApp")
-                  }} /> }    
-          
-          {view.startApp 
-          && <button 
-              onClick={() => {
-                startApp()
-              }}>
-            Start App
-          </button> }
-          </section>
+    <main>          
+        {view.configForm 
+        && <ConfigForm 
+              submit={() => {
+                setConfig()
+                updateView("startApp")
+                }} /> }    
+        
+        {view.startApp 
+        && <button 
+            onClick={() => {
+              startApp()
+            }}>
+          Start App
+        </button> }
     </main>
     </>
   )
