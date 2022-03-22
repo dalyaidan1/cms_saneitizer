@@ -16,7 +16,8 @@ function App() {
   async function startApp(){
     let data = {...config, start:true}
     console.log(data)
-    await postData('start', data)
+    let res = await postData('start', data)
+    console.log(res)
   }
 
   function updateView(viewNameToUpdate){

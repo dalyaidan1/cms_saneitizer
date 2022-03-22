@@ -11,7 +11,7 @@ export const getData = async (endpoint) => {
         referrerPolicy: 'no-referrer',
       })
       .then((res) => {
-        return res.json()
+        return json.parse(res)
       })
       .catch((err) => {
         return err
@@ -32,7 +32,7 @@ export const postData = async (endpoint, data) => {
         body: JSON.stringify({data})
       })
       .then((res) => {
-        return res.json()
+        return json.parse(res)
       })
       .catch((err) => {
         return err

@@ -25,8 +25,8 @@ app.post('/api/start', async (req, res) => {
     if (decodedResponse.data.start){
         let sendBack = await start(decodedResponse.data)
         if (sendBack){
-            res.send("ok")
-            // res.json({data:processed})
+            // res.send("ok")
+            res.json({"data":"processed"})
         }
     }   	
 })

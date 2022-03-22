@@ -17,7 +17,7 @@ async function scrapeAll(browserInstance, databaseDriver){
 		const scrapeTimeStart = Date.now()
 		await pageScraper.scraper(browser, domainHome, databaseAccessor)
 		let timeEnd = Date.now()
-		console.log(`Scrape Time: ${calcTime(scrapeTimeStart - timeEnd)} minute(s)`)
+		console.log(`Scrape Time: ${calcTime(scrapeTimeStart, timeEnd)} minute(s)`)
 		
 		// close puppeteer browser
 		await browser.close()
@@ -29,7 +29,7 @@ async function scrapeAll(browserInstance, databaseDriver){
 
 		// see how long it took
 		timeEnd = Date.now()
-		console.log(`Total scrape and connect time: ${calcTime(timeStart - timeEnd)} minute(s)`)
+		console.log(`Total scrape and connect time: ${calcTime(timeStart, timeEnd)} minute(s)`)
 		
 	}
 	catch(err){
@@ -39,7 +39,7 @@ async function scrapeAll(browserInstance, databaseDriver){
 
 		// see how long it took
 		const timeEnd = Date.now()
-		console.log(`Error time: ${calcTime(timeStart - timeEnd)} minutes`)
+		console.log(`Error time: ${calcTime(timeStart, timeEnd)} minutes`)
 	}
 	return true
 }
@@ -50,12 +50,12 @@ async function connect(databaseAccessor){
 		//clean up page structure for navigation and exporting
 		await treeConnector.parseLayers(databaseAccessor)
 		timeEnd = Date.now()
-		console.log(`Connect time: ${calcTime(connectTimeStart - timeEnd)} minute(s)`)
+		console.log(`Connect time: ${calcTime(connectTimeStart, timeEnd)} minute(s)`)
 	}
 	catch(err){
 		timeEnd = Date.now()
 		console.log(err)
-		console.log(`Connect error time: ${calcTime(connectTimeStart - timeEnd)} minute(s)`)
+		console.log(`Connect error time: ${calcTime(connectTimeStart, timeEnd)} minute(s)`)
 		// close database driver
 		databaseDriver.close()
 	}
@@ -71,13 +71,13 @@ async function exportHTML(databaseDriver, filesToo){
 		console.log("Exporting")
 		await exporter.generateExport(databaseAccessor, filesToo)
 		timeEnd = Date.now()
-		console.log(`Export time: ${calcTime(exportTimeStart - timeEnd)} minute(s)`)
+		console.log(`Export time: ${calcTime(exportTimeStart, timeEnd)} minute(s)`)
 		databaseDriver.close()
 	}
 	catch(err){
 		timeEnd = Date.now()
 		console.log(err)
-		console.log(`Export error time: ${calcTime(timeStart - timeEnd)} minute(s)`)
+		console.log(`Export error time: ${calcTime(timeStart, timeEnd)} minute(s)`)
 		databaseDriver.close()
 	}
 }

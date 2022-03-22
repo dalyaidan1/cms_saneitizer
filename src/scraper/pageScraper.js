@@ -3,9 +3,17 @@ const config = require('../USER_CONFIG.json')
 const DETECT_NON_RESTFUL = config['DETECT_NON_RESTFUL']
 let DOMAIN
 
+async function minimizeBrowser(page){
+	// Create raw protocol session.
+    const session = await page.target().createCDPSession();
+    const {windowId} = await session.send('Browser.getWindowForTarget');
+    await session.send('Browser.setWindowBounds', {windowId, bounds: {windowState: 'minimized'}});
+}
+
 const scraperObject = {
     async scraper(browser, url, databaseAccessor){
         let page = await browser.newPage()
+		await minimizeBrowser(page)
 		DOMAIN = url
 		async function scrapeCurrentPage(outerURL){
 			console.log(`Navigating to ${outerURL}...`)
