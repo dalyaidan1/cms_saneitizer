@@ -21,10 +21,10 @@ async function scrapeAll(browserInstance, databaseDriver, expressApp){
 		// await browser.close()
 
 
-		//clean up page structure for navigation and exporting
-		await treeConnector.parseLayers(databaseAccessor)
-		timeEnd = Date.now()
-		console.log(`Connect time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
+		// //clean up page structure for navigation and exporting
+		// await treeConnector.parseLayers(databaseAccessor)
+		// timeEnd = Date.now()
+		// console.log(`Connect time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
 
 		console.log("Exporting")
 		await exporter.generateExport(databaseAccessor, true)

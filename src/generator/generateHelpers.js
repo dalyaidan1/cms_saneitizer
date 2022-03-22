@@ -17,8 +17,14 @@ function deScapeContent(content){
     return content
 }
 
+
+function escapeFilename(filename){
+    return filename.replace(/\?|=|\$|&|%/g, '')
+}
+
 module.exports = {
     formatDirectoryTitle,
     formatAnchorURL,
     deScapeContent,
+    escapeFilename,
 }

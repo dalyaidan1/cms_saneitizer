@@ -4,6 +4,7 @@ const {
     formatDirectoryTitle, 
     formatAnchorURL,
     deScapeContent,
+    escapeFilename,
 } = require('./generateHelpers')
 
 async function newLink(node, makeDirectory){
@@ -18,7 +19,7 @@ async function newLink(node, makeDirectory){
         ? `public/html${nodeName}`
         : `public/html${nodeName}.html`
         
-        fs.writeFileSync(filePathName, deScapeContent(node.properties.content))
+        fs.writeFileSync(escapeFilename(filePathName), deScapeContent(node.properties.content))
     }
 }
 
