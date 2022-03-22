@@ -1,5 +1,8 @@
 const sanitizeHTML = require('sanitize-html')
 const prettier = require('prettier')
+const fs  = require('fs')
+const jsdom = require('jsdom')
+const {JSDOM} = jsdom
 
 
 function pageSanitizer(page, domain){
@@ -27,13 +30,25 @@ function pageSanitizer(page, domain){
 
     // clean tags 
     // make a real page to output, get outerHTML, remove it, then import back?
+    let pageToEdit = new JSDOM(page)
+    function removeElement(element){
+        let elementInDOM = pageToEdit.window.document.querySelector(element)
+        if (elementInDOM !== null){
+            elementInDOM.remove()
+        }
+    }
     // -- remove nav
+    removeElement('nav')
     // -- remove footer 
+    removeElement('footer')
     // --remove tags user doesn't want
     
+    page = pageToEdit.window.document.body.outerHTML
     
     // remove ads
     // npm package
+
+    // organize to template
 
     // beautify
     page = prettier.format(page, {parser:"html"})
@@ -41,8 +56,6 @@ function pageSanitizer(page, domain){
     // escape ",',/ and \ for the database
     page = page.replace(/\"/g, '\\\"')
     page = page.replace(/\'/g, '""')
-    
-    // organize to template
 
     return page
 
