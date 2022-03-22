@@ -1,5 +1,5 @@
 export const getData = async (endpoint) => {
-    await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/${endpoint}`, {
+    return await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/${endpoint}`, {
         method:'GET',
         mode: 'cors',
         cache: 'no-cache',
@@ -10,8 +10,9 @@ export const getData = async (endpoint) => {
         redirect: 'follow',
         referrerPolicy: 'no-referrer',
       })
-      .then((res) => {
-        return json.parse(res)
+      .then((res) => res.json())
+      .then(data => {
+        return data
       })
       .catch((err) => {
         return err
@@ -19,7 +20,7 @@ export const getData = async (endpoint) => {
 }
 
 export const postData = async (endpoint, data) => {
-    await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/${endpoint}`, {
+    return await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/${endpoint}`, {
         method:'POST',
         mode: 'cors',
         cache: 'no-cache',
@@ -31,8 +32,9 @@ export const postData = async (endpoint, data) => {
         referrerPolicy: 'no-referrer',
         body: JSON.stringify({data})
       })
-      .then((res) => {
-        return json.parse(res)
+      .then((res) => res.json())
+      .then(data => {
+        return data
       })
       .catch((err) => {
         return err

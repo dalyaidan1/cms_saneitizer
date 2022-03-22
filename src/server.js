@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const driver = require('./database/neo4jDriver')
 
 // cors middleware
 const cors = require('cors')
@@ -21,12 +22,14 @@ app.get('/', function (req, res) {
 
 // start app route
 app.post('/api/start', async (req, res) => {
+    const fs = require('fs')
     let decodedResponse = req.body
     if (decodedResponse.data.start){
-        let sendBack = await start(decodedResponse.data)
+        let sendBack = true // await start(decodedResponse.data)
         if (sendBack){
-            // res.send("ok")
-            res.json({"data":"processed"})
+            await exportData(false)
+            let data = (fs.readFileSync('./public/html/navigation.html')).toString()
+            res.json({"data":data})
         }
     }   	
 })
@@ -40,7 +43,6 @@ app.get('/api/export/nav', async (req, res) => {
 async function start(data){
     const browserObject = require('./scraper/browser')
     const {scrapeAll} = require('./appController')
-    const driver = require('./database/neo4jDriver')
     const fs = require('fs')
     
     // set the config
@@ -56,6 +58,5 @@ async function start(data){
 
 async function exportData(withFiles){
     const {exportHTML} = require('./appController')
-    const driver = require('./database/neo4jDriver')
     return await exportHTML(driver, withFiles)
 }
