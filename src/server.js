@@ -20,27 +20,42 @@ app.get('/', function (req, res) {
 
 
 // start app route
-app.post('/api/start', (req, res) => {
+app.post('/api/start', async (req, res) => {
     let decodedResponse = req.body
     if (decodedResponse.data.start){
-        start(decodedResponse.data)
-    }    	
+        let sendBack = await start(decodedResponse.data)
+        if (sendBack){
+            res.send("ok")
+            // res.json({data:processed})
+        }
+    }   	
 })
 
-function start(data){
+
+// start app route
+app.get('/api/export/nav', async (req, res) => {
+    // let export = await repsonse	
+})
+
+async function start(data){
     const browserObject = require('./scraper/browser')
-    const scraperController = require('./appController')
+    const {scrapeAll} = require('./appController')
     const driver = require('./database/neo4jDriver')
     const fs = require('fs')
     
     // set the config
-    // fs.writeFileSync('./src/USER_CONFIG.json', JSON.stringify(data))
+    fs.writeFileSync('./src/USER_CONFIG.json', JSON.stringify(data))
 
     // //Start the browser and create a browser instance
     let browserInstance = browserObject.startBrowser()
 
     // Pass the browser instance to the scraper controller
-    scraperController(browserInstance, driver, app)
+    let scraped = await scrapeAll(browserInstance, driver)
+    return scraped
 }
 
-start()
+async function exportData(withFiles){
+    const {exportHTML} = require('./appController')
+    const driver = require('./database/neo4jDriver')
+    return await exportHTML(driver, withFiles)
+}
