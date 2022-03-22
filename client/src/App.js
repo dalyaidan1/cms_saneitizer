@@ -4,20 +4,20 @@ import ConfigForm from './components/config/ConfigForm'
 import Nav from './components/Nav'
 import Run from './components/run/Run'
 
-async function startApp(){
-  let data = {start:true}
-  await postData('start', data)
-}
-
 function App() {
   const [config, setConfig] = useState({})
   const [view, setView] = useState({
     configForm: true,
-    startApp : false,
     appRunning: false,
     adjustments : false,
     export: false,
   })
+
+  async function startApp(){
+    let data = {...config, start:true}
+    console.log(data)
+    await postData('start', data)
+  }
 
   function updateView(viewNameToUpdate){
     for (let viewName of Object.keys(view)){
@@ -33,14 +33,15 @@ function App() {
     <main>          
         {view.configForm 
         && <ConfigForm 
-              submit={() => {
-                setConfig()
-                updateView("startApp")
+              submit={(config) => {
+                setConfig(config)
+                updateView("appRunning")
                 }} /> }    
         
-        {view.startApp 
+        {view.appRunning 
         && <Run 
-            startApp={startApp} /> 
+            startApp={startApp} 
+            toAdjust={() => updateView("adjustments")} /> 
         }
     </main>
     </>

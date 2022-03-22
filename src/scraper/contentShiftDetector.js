@@ -227,7 +227,7 @@ async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=TO
         }
 
         // if the tolerance is -1, there has been enough element different to justify a new page
-        if (tolerance = -1){
+        if (tolerance === -1){
             return true
         }
             
@@ -263,16 +263,16 @@ async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=TO
 const performEvent = async (elementHandle, event) => {
     switch(event){
         case String(event.match(/touch/g)):
-            await elementHandle.tap()
+            await elementHandle.evaluate(e => e.tap())
             break
         case String(event.match(/focus/g)):
-            await elementHandle.focus()
+            await elementHandle.evaluate(e => e.focus())
             break
         case String(event.match(/select/g)):
-            await elementHandle.select()
+            await elementHandle.evaluate(e => e.select())
             break  
         default:
-            await elementHandle.click()
+            await elementHandle.evaluate(e => e.click())
     }
 }
 
@@ -292,6 +292,8 @@ async function reloadPage(page){
 	
     // wait for content to load
 	await page.waitForNetworkIdle()
+
+    await assignPageIDs(page)
 }
 
 

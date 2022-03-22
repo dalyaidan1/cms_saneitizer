@@ -26,14 +26,12 @@ function Run(props){
     }
 
     
-
-
     return(
         <form>
             <button 
                 onClick={(e) => {
                     e.preventDefault()
-                // props.startApp()
+                props.startApp()
                 setLoad(true)
                 }}>
             Start App
@@ -50,7 +48,7 @@ function Run(props){
                     onClick={(e) => {
                         e.preventDefault()
                         setLoad(false)
-                    // props.adjust()
+                        props.toAdjust()
                     }}>
                     Next <DoubleArrowOutlinedIcon/>
             </button>

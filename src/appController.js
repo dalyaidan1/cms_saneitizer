@@ -2,9 +2,9 @@ const pageScraper = require('./scraper/pageScraper')
 const DatabaseAccessor = require('./database/databaseAccessor')
 const treeConnector = require('./sanitizer/treeConnector')
 const exporter = require('./generator/export')
-
+const config = require('./USER_CONFIG.json')
 // TODO make sure that it does not have a "/" at the end
-const domainHome = 'https://quotes.toscrape.com'
+const domainHome = config.DOMAIN
 
 async function scrapeAll(browserInstance, databaseDriver, expressApp){
 	let browser

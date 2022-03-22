@@ -42,6 +42,20 @@ function sanitizeTitle(title){
 // regex a url to remove the domain, so key lookup is a tiny bit faster and less cluttered
 function removeDomainFromURL(url, domainHome){
     // console.log(url);
+    if (domainHome.match(/http:\/\//) !== null){
+        if (url.match(/http:\/\//) === null){
+            domainHome = domainHome.replace(/http:\/\//, 'https:\/\/')
+        }
+        return url.replace(domainHome, '')
+    }
+
+    if (domainHome.match(/https:\/\//) !== null){
+        if (url.match(/https:\/\//) === null){
+            domainHome = domainHome.replace(/https:\/\//, 'http:\/\/')
+        }
+        return url.replace(domainHome, '')
+    }
+
     return url.replace(domainHome, '')
 }
 

@@ -62,6 +62,10 @@ class DatabaseAccessor {
 
     async updatePageNodeFromPage(page){
         const url = await page.url()
+        if (url === "http://www.scrapethissite.com/lessons/sign-up/"){
+            console.log(url)
+            let now = 2
+        }
 
         const name = this.helper.formatPageName(url, this.domainHome)
 
@@ -74,6 +78,9 @@ class DatabaseAccessor {
                 `MATCH (page:Page {name: '${name}'})
                 RETURN page AS page`)
             .then(async result => {
+                if (result.records === []){
+                        console.log(result)
+                }
                 pageMatch = result.records[0].get('page')                
             })
             .catch(error => {
@@ -343,6 +350,10 @@ class DatabaseAccessor {
     // check if a url is already in the tracking oject
     // returns true or false
     async isURLNewNode(url) {
+        if (url === "http://www.scrapethissite.com/lessons/sign-up/"){
+            console.log(url)
+            let now = 2
+        }
         const name = this.helper.formatPageName(url, this.domainHome)
         let newNode = false
         let session = await this.driver.session()
@@ -352,7 +363,7 @@ class DatabaseAccessor {
                 RETURN node AS node`)
             .then(result => {
                 const status = result.records[0].get('node')
-                if (status === null){
+                if (status === null || status === 0){
                     newNode = true
                 }
             })

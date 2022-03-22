@@ -352,7 +352,7 @@ function ConfigForm(props){
                 value="Next"
                 onClick={(e) => {
                     e.preventDefault()
-                    props.submit()
+                    props.submit(config)
                 }}>
                 Next <DoubleArrowOutlinedIcon/>
             </button>
