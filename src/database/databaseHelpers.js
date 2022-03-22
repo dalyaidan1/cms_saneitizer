@@ -1,3 +1,5 @@
+const config = require('../USER_CONFIG.json')
+
 function layerIsAChildOfOtherLayer(innerPageURL, outerPageURL){
     let match = false
 
@@ -65,6 +67,19 @@ function formatPageName(url, domainHome){
     return url
 }
 
+async function getTitle(page){
+    const titleConfig = config.DRAW_PAGE_TITLE_FROM
+    if (titleConfig.title){
+        return await page.title()
+    }
+    if (titleConfig.urlSnippet){
+        let url = await page.url()
+        // match the last part of the url to the / or the first / to the second /, then get ride of /
+        url = String(url.match(/\/[a-zA-Z0-9.%?='"_-]*\/$|\/[a-zA-Z0-9.%?='"_-]*$/)).replace(/\//, '')
+        return url  
+    }
+}
+
 
 module.exports = {
     layerIsAChildOfOtherLayer,
@@ -72,4 +87,5 @@ module.exports = {
     sanitizeTitle,
     removeDomainFromURL,
     formatPageName,
+    getTitle,
 }

@@ -30,10 +30,17 @@ const connectLayers = {
                         setNewDirectoryNodeFromURL(
                             childLayerNodes[childNode].properties.url, parentURL)
                 } else {
-                    // set it as a parent of the childLayerNodes[childNode].url and vice-versa
+                    // cases where a there is a page under another page directly
+                    if (!((await databaseAccessor.getNodeTypesFromURL(parentURL)).includes("Directory"))){
+                        await databaseAccessor.
+                            setNewDirectoryNodeFromURL(
+                                childLayerNodes[childNode].properties.url, parentURL)
+                    } else{
+                        // set it as a parent of the childLayerNodes[childNode].url and vice-versa
                         await databaseAccessor.
                             updateNodeRelationship(
                                 childLayerNodes[childNode].properties.url, parentURL)
+                    }   
                 }
             }
 

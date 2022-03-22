@@ -21,7 +21,7 @@ class DatabaseAccessor {
             : options["layer"]
 
         const title = options["title"] === undefined
-            ? this.helper.sanitizeTitle(await page.title())
+            ? this.helper.sanitizeTitle(await this.helper.getTitle(page))
             : this.helper.sanitizeTitle(options["title"])
 
         const content = options["content"] === undefined 
@@ -104,7 +104,7 @@ class DatabaseAccessor {
             .then(async () => await session2.close())
         } else {
             // if not, need to update it
-            const title = this.helper.sanitizeTitle(await page.title())
+            const title = this.helper.sanitizeTitle(await this.helper.getTitle(page))
             const content = this.sanitize(
                 await page.$eval('body', content => content.outerHTML),
                 this.domainHome
@@ -259,6 +259,29 @@ class DatabaseAccessor {
         await this.updateNodeRelationship(childURL, parentURL)
     }
 
+    async convertPageNodeToRedirectFromURL(startURL, endURL){
+        const startName = this.helper.removeDomainFromURL(startURL, this.domainHome)
+        const endName = this.helper.removeDomainFromURL(endURL, this.domainHome)
+
+        let session = await this.driver.session()
+        // set the page props
+        await session
+            .run(
+                `MATCH (startPage:Page {name: '${startName}'}),
+                (endPage:Page {name: '${endName}'})
+                REMOVE startPage:Page
+                SET startPage:Redirect,
+                startPage.sanitized = true
+                CREATE (startPage)-[:REDIRECTS]->(endPage)`
+            )
+            .catch(error => {
+                this.logError(error, startURL);
+            })
+            .then(async () => {
+                await session.close()                                               
+            })
+    }
+
 
     async getMaxLayer(){
         let max = 0
@@ -312,7 +335,7 @@ class DatabaseAccessor {
         await session.run(
             `MATCH 
                 (childNode),
-                (parentNode)
+                (parentNode:Directory)
             WHERE 
                 childNode.name = '${childName}' 
                 AND parentNode.name = '${parentName}'
@@ -327,16 +350,18 @@ class DatabaseAccessor {
         })
     }
 
-    async getNodeTypeFromURL(url){
+    async getNodeTypesFromURL(url){
         const name = this.helper.formatPageName(url, this.domainHome)
-        let type = "Page"
+        let types = [""]
         let session = await this.driver.session()
         await session
             .run(
                 `OPTIONAL MATCH (node {name: '${name}'})
                 RETURN labels(node) AS labels`)
             .then(result => {
-                type = result.records[0].get('labels')[0]
+                types = result.records.map(label => {
+                    return label.get('labels')[0]
+                })
             })
             .catch(error => {
                 this.logError(error, url);
@@ -344,7 +369,7 @@ class DatabaseAccessor {
             .then(async () => {
                 await session.close()                
             }) 
-        return type 
+        return types 
     }
 
     // check if a url is already in the tracking oject

@@ -16,6 +16,9 @@ const scraperObject = {
 
 			// account for redirect links
 			const realOuterURL = await page.url()
+			if (outerURL !== realOuterURL){
+				await databaseAccessor.convertPageNodeToRedirectFromURL(outerURL, realOuterURL)
+			}
 
 			// const parentURLKey = url === domainHome ? "/" : removeDomainFromURL(url)
 			let outerPageName
