@@ -14,17 +14,17 @@ async function scrapeAll(browserInstance, databaseDriver, expressApp){
 
 		const databaseAccessor = await new DatabaseAccessor(databaseDriver, domainHome)		
 
-		// await pageScraper.scraper(browser, domainHome, databaseAccessor)
-		// let timeEnd = Date.now()
-		// console.log(`Scrape Time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
-		// // close puppeteer browser
-		// await browser.close()
+		await pageScraper.scraper(browser, domainHome, databaseAccessor)
+		let timeEnd = Date.now()
+		console.log(`Scrape Time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
+		// close puppeteer browser
+		await browser.close()
 
 
-		// //clean up page structure for navigation and exporting
-		// await treeConnector.parseLayers(databaseAccessor)
-		// timeEnd = Date.now()
-		// console.log(`Connect time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
+		//clean up page structure for navigation and exporting
+		await treeConnector.parseLayers(databaseAccessor)
+		timeEnd = Date.now()
+		console.log(`Connect time: ${Math.abs(Math.floor((timeStart - timeEnd) / 1000)/60)} minute(s)`)
 
 		console.log("Exporting")
 		await exporter.generateExport(databaseAccessor, true)

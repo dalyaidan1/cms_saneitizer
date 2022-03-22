@@ -1,5 +1,6 @@
 const {detect} = require('./contentShiftDetector')
-const DETECT_NON_RESTFUL = false
+const config = require('../USER_CONFIG.json')
+const DETECT_NON_RESTFUL = config['DETECT_NON_RESTFUL']
 let DOMAIN
 
 const scraperObject = {

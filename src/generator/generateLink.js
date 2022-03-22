@@ -45,14 +45,15 @@ async function newDirectory(node, databaseAccessor, makeDirectory){
 
 async function generateLink(node, databaseAccessor, makeDirectory){
     let file = fs.readFileSync(NAV_FILE)
-    if(!(file.includes(node.properties.url))){
+    
+    if(file.indexOf(`${formatAnchorURL(node.properties.name)}.html`) < 1){        
         if (node.labels[0] === "Page"){
             await newLink(node, makeDirectory)
         }
-
-        if (node.labels[0] === "Directory"){
-            await newDirectory(node, databaseAccessor, makeDirectory)
-        }
+        
+    }
+    if (node.labels[0] === "Directory"){
+        await newDirectory(node, databaseAccessor, makeDirectory)
     }
 }
 

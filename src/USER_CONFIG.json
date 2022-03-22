@@ -1,5 +1,5 @@
 {
-  "DOMAIN": "https://www.scrapethissite.com",
+  "DOMAIN": "https://quotes.toscrape.com",
   "DRAW_PAGE_TITLE_FROM": { "pageTitle": false, "urlSnippet": true },
   "DETECT_NON_RESTFUL": true,
   "ATTRIBUTES": {
