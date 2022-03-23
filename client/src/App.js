@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { postData } from './fetch';
 import ConfigForm from './components/config/ConfigForm'
 import Nav from './components/Nav'
 import Run from './components/run/Run'
+import Adjust from './components/edit/Adjust';
 
 function App() {
   const [config, setConfig] = useState({})
+  const [nav, setNav] = useState("")
   const [view, setView] = useState({
     configForm: true,
     appRunning: false,
@@ -17,8 +19,14 @@ function App() {
     let data = {...config, start:true}
     console.log(data)
     let res = await postData('start', data)
-    console.log(res)
+    setNav(res.data)
   }
+
+  useEffect(() => {
+    if (nav !== "" && view.adjustments !== true){
+      updateView("adjustments")
+    }
+  },)
 
   function updateView(viewNameToUpdate){
     for (let viewName of Object.keys(view)){
@@ -44,6 +52,13 @@ function App() {
             startApp={startApp} 
             toAdjust={() => updateView("adjustments")} /> 
         }
+
+        {view.adjustments 
+        && <Adjust 
+            // export={} 
+            nav={nav} /> 
+        }
+
     </main>
     </>
   )

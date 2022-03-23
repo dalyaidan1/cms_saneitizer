@@ -62,11 +62,7 @@ class DatabaseAccessor {
 
     async updatePageNodeFromPage(page){
         const url = await page.url()
-        if (url === "http://www.scrapethissite.com/lessons/sign-up/"){
-            console.log(url)
-            let now = 2
-        }
-
+        
         const name = this.helper.formatPageName(url, this.domainHome)
 
         let pageMatch;
@@ -260,8 +256,8 @@ class DatabaseAccessor {
     }
 
     async convertPageNodeToRedirectFromURL(startURL, endURL){
-        const startName = this.helper.removeDomainFromURL(startURL, this.domainHome)
-        const endName = this.helper.removeDomainFromURL(endURL, this.domainHome)
+        const startName = this.helper.formatPageName(startURL, this.domainHome)
+        const endName = this.helper.formatPageName(endURL, this.domainHome)
 
         let session = await this.driver.session()
         // set the page props
@@ -375,10 +371,6 @@ class DatabaseAccessor {
     // check if a url is already in the tracking oject
     // returns true or false
     async isURLNewNode(url) {
-        if (url === "http://www.scrapethissite.com/lessons/sign-up/"){
-            console.log(url)
-            let now = 2
-        }
         const name = this.helper.formatPageName(url, this.domainHome)
         let newNode = false
         let session = await this.driver.session()

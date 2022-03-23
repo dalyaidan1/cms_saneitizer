@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from 'react'
-import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined';
 
 function Run(props){
     const [loadImage, setLoadImage] = useState(1)
@@ -43,15 +42,6 @@ function Run(props){
                     <h1>San(e)itizing Website...</h1>
                 </section>
             </>}
-
-            <button 
-                    onClick={(e) => {
-                        e.preventDefault()
-                        setLoad(false)
-                        props.toAdjust()
-                    }}>
-                    Next <DoubleArrowOutlinedIcon/>
-            </button>
             
         </form>
     )

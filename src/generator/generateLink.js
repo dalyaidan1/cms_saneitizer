@@ -7,8 +7,12 @@ const {
     escapeFilename,
 } = require('./generateHelpers')
 
-async function newLink(node, makeDirectory){
-    let tempLink = `<li><a href="${formatAnchorURL(node.properties.name)}.html">${node.properties.title}</a></li>\n`
+async function newLink(node, makeDirectory, forAdjustments){
+    let tempLink = `<li><a href="${formatAnchorURL(node.properties.name)}.html">${formatAnchorURL(node.properties.title)}</a></li>\n`
+    if (forAdjustments){
+        tempLink = `<li data-cmss-name=${node.properties.name}>
+                        <a href="${node.properties.url}" target="_blank">${formatAnchorURL(node.properties.title)}</a></li>\n`
+    }
     fs.appendFileSync(NAV_FILE, tempLink)
     if (makeDirectory){
         let nodeName = node.properties.name
@@ -23,7 +27,7 @@ async function newLink(node, makeDirectory){
     }
 }
 
-async function newDirectory(node, databaseAccessor, makeDirectory){
+async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustments){
     let tempLink = `<li>\n<span>${formatDirectoryTitle(node.properties.name)}</span>\n<ul>\n`
     fs.appendFileSync(NAV_FILE, tempLink)
 
@@ -37,23 +41,30 @@ async function newDirectory(node, databaseAccessor, makeDirectory){
     let children = await databaseAccessor.getNodeChildren(name)
     if (children[0] !== null){
         for (child in children){
-            await generateLink(children[child], databaseAccessor, makeDirectory)
+            await generateLink(children[child], databaseAccessor, makeDirectory, forAdjustments)
         }            
     }
     fs.appendFileSync(NAV_FILE, '</ul>\n</li>\n')
 }
 
-async function generateLink(node, databaseAccessor, makeDirectory){
+async function generateLink(node, databaseAccessor, makeDirectory, forAdjustments){
     let file = fs.readFileSync(NAV_FILE)
+    let fileString = file.toString()
     
-    if(file.indexOf(`${formatAnchorURL(node.properties.name)}.html`) < 1){        
+    if(!(fileString
+            .includes(forAdjustments 
+                ? node.properties.url 
+                :`${formatAnchorURL(node.properties.name)}.html`))){        
         if (node.labels[0] === "Page"){
-            await newLink(node, makeDirectory)
+            await newLink(node, makeDirectory, forAdjustments)
         }
         
     }
-    if (node.labels[0] === "Directory"){
-        await newDirectory(node, databaseAccessor, makeDirectory)
+    if(!(fileString
+        .includes(`<span>${formatDirectoryTitle(node.properties.name)}</span>`))){  
+        if (node.labels[0] === "Directory"){
+            await newDirectory(node, databaseAccessor, makeDirectory, forAdjustments)
+        }
     }
 }
 

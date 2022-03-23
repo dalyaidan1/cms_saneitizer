@@ -25,9 +25,9 @@ app.post('/api/start', async (req, res) => {
     const fs = require('fs')
     let decodedResponse = req.body
     if (decodedResponse.data.start){
-        let sendBack = true // await start(decodedResponse.data)
+        let sendBack = true //await start(decodedResponse.data)
         if (sendBack){
-            await exportData(false)
+            await exportData(false, true)
             let data = (fs.readFileSync('./public/html/navigation.html')).toString()
             res.json({"data":data})
         }
@@ -56,7 +56,7 @@ async function start(data){
     return scraped
 }
 
-async function exportData(withFiles){
+async function exportData(withFiles, forAdjustments){
     const {exportHTML} = require('./appController')
-    return await exportHTML(driver, withFiles)
+    return await exportHTML(driver, withFiles, forAdjustments)
 }

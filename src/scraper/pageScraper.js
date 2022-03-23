@@ -24,10 +24,7 @@ const scraperObject = {
 			await page.waitForNetworkIdle()
 
 			// account for redirect links
-			const realOuterURL = await page.url()
-			if (outerURL !== realOuterURL){
-				await databaseAccessor.convertPageNodeToRedirectFromURL(outerURL, realOuterURL)
-			}
+			const realOuterURL = await page.url()			
 
 			// const parentURLKey = url === domainHome ? "/" : removeDomainFromURL(url)
 			let outerPageName
@@ -44,7 +41,11 @@ const scraperObject = {
 			} 
 			else {
 				outerPageName = await databaseAccessor.updatePageNodeFromPage(page)
-			}						
+			}		
+			
+			if (outerURL !== realOuterURL){
+				await databaseAccessor.convertPageNodeToRedirectFromURL(outerURL, realOuterURL)
+			}
 
 			// scape all anchors on the page
 			let urls = await page.$$eval('a', anchors => {

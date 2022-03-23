@@ -386,3 +386,21 @@ form > button{
   width:10em;
   margin:2rem 0;
 }
+
+/* adjust */
+#navCode nav,
+#navCode ul,
+#navCode li{
+  all:unset;
+}
+
+#navCode nav ul{
+  list-style: disc outside none;
+  display: list-item;
+  margin-left: 1em;
+}
+
+#navCode nav li{
+  /* list-style: circle; */
+  display: list-item;
+}
