@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { postData } from './fetch';
+import { postData, getFileData } from './fetch';
 import ConfigForm from './components/config/ConfigForm'
 import Nav from './components/Nav'
 import Run from './components/run/Run'
@@ -18,6 +18,7 @@ function App() {
   const [nav, setNav] = useState("")
   const [navFill, setNavFill] = useState(initialView)
   const [view, setView] = useState(initialView)
+  const [data, setData] = useState('')
 
   async function startApp(){
     let data = {...config, start:true}
@@ -42,12 +43,20 @@ function App() {
     setView({...view})
   }
 
+  async function getZip(){
+    let data = await getFileData('export/nav')
+    console.log(data)
+    let url = window.URL.createObjectURL(data)
+    setData(url)
+    window.document.getElementById('data').click()
+  }
+
   return (
     <>
     <Nav 
       fill={navFill} />
     <main>          
-        {view.configForm 
+        {/* {view.configForm 
         && <ConfigForm 
               submit={(config) => {
                 setConfig(config)
@@ -64,8 +73,9 @@ function App() {
         && <Adjust 
             // export={} 
             nav={nav} /> 
-        }
-
+        } */}
+    <input type="button" value="click" onClick={() => getZip()}/>
+    <a href={data} id="data" download></a>
     </main>
     </>
   )

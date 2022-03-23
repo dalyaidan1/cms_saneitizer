@@ -31,16 +31,27 @@ app.post('/api/start', async (req, res) => {
             await exportData(false, true)
             let data = (fs.readFileSync('./public/html/navigation.html')).toString()
             res.json({"data":data})
-        }
-        await exportData(true, false)
+        }        
     }   	
 })
 
 
 // start app route
 app.get('/api/export/nav', async (req, res) => {
-    // let export = await response	
+    await exportData(true, false)
+    await zip()
+    res.download('./public/newSite.zip')
+    
 })
+
+
+async function zip(){
+    const AdmZip = require('adm-zip')
+    const zip = new AdmZip()
+    const outputFile = "./public/newSite.zip"
+    await zip.addLocalFolder("./public/html")
+    await zip.writeZip(outputFile)
+}
 
 async function start(){
     const browserObject = require('./scraper/browser')
