@@ -5,15 +5,19 @@ import Nav from './components/Nav'
 import Run from './components/run/Run'
 import Adjust from './components/edit/Adjust';
 
+
+const initialView = {
+  configForm: true,
+  appRunning: false,
+  adjustments : false,
+  export: false,
+}
+
 function App() {
   const [config, setConfig] = useState({})
   const [nav, setNav] = useState("")
-  const [view, setView] = useState({
-    configForm: true,
-    appRunning: false,
-    adjustments : false,
-    export: false,
-  })
+  const [navFill, setNavFill] = useState(initialView)
+  const [view, setView] = useState(initialView)
 
   async function startApp(){
     let data = {...config, start:true}
@@ -29,6 +33,8 @@ function App() {
   },)
 
   function updateView(viewNameToUpdate){
+    navFill[viewNameToUpdate] = true
+    setNavFill({...navFill})
     for (let viewName of Object.keys(view)){
       view[viewName] = false
     }
@@ -38,7 +44,8 @@ function App() {
 
   return (
     <>
-    <Nav />
+    <Nav 
+      fill={navFill} />
     <main>          
         {view.configForm 
         && <ConfigForm 

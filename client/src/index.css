@@ -251,7 +251,7 @@ nav > ul{
 nav li{
   font-weight: bold;
   font-size: 1.1rem;
-  margin:1rem 0;
+  /* margin: 0.5rem 0; */
   padding: 1rem;
 }
 
@@ -286,6 +286,22 @@ nav ul li:nth-child(1){
 
 nav ul > li:nth-child(1) span{
   margin-right: auto;
+}
+
+nav .circleConnector{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color:var(--primary-color);
+}
+
+nav .circleConnector span{
+  opacity: 0.2;
+}
+
+nav .circleConnector svg{
+  padding-top:0.5rem;
+  padding-bottom: 0.2rem;
 }
 
 /* Main */

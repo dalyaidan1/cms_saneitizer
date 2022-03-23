@@ -1,9 +1,17 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import MenuIcon from '@mui/icons-material/Menu';
-import CircleIcon from '@mui/icons-material/Circle';
-import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
+import FilledCircleConnector from "./icons/FilledCircleConnector";
+import HollowCircleConnector from "./icons/HollowCircleConnector";
 
-function Nav(){
+function Nav(props){
+    const [fill, setFill] = useState(props.fill)
+
+    useEffect(() => {
+        if (props.fill !== fill){
+            setFill(props.fill)
+        }   
+    })
+
     return (
         <nav>
             <ul>                                  
@@ -14,19 +22,27 @@ function Nav(){
                 </li>
                 <li>
                     <span>Setup</span>
-                    <CircleIcon />                               
+                    {fill.configForm 
+                        ? <FilledCircleConnector />
+                        : <HollowCircleConnector />}                              
                 </li>  
                 <li>
                     <span>Run</span>
-                    <CircleOutlinedIcon />                               
+                    {fill.appRunning
+                        ? <FilledCircleConnector />
+                        : <HollowCircleConnector />}                            
                 </li>  
                 <li>
                     <span>Adjust</span>
-                    <CircleOutlinedIcon />                               
+                    {fill.adjustments
+                        ? <FilledCircleConnector />
+                        : <HollowCircleConnector />}                              
                 </li> 
                 <li>
                     <span>Export</span>
-                    <CircleOutlinedIcon />                               
+                    {fill.export 
+                        ? <FilledCircleConnector />
+                        : <HollowCircleConnector />}
                 </li>  
             </ul>
         </nav>
