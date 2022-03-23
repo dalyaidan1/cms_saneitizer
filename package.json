@@ -20,6 +20,7 @@
   "homepage": "https://github.com/dalyaidan1/cms_saneitizer#readme",
   "dependencies": {
     "@mozilla/readability": "^0.4.1",
+    "adm-zip": "^0.5.9",
     "body-parser": "^1.19.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",

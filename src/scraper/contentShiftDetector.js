@@ -4,6 +4,7 @@ const PROPS_TO_CHECK = USER_CONFIG["ATTRIBUTES"]
 const IGNORABLE_ELEMENTS = USER_CONFIG["IGNORABLE_ELEMENTS"]
 const TOLERANCE = USER_CONFIG["TOLERANCE"]
 const RADIUS = USER_CONFIG["RADIUS"]
+const WAIT_TIME = USER_CONFIG["WAIT_TIME"]
 let browser
 
 async function detect(b, page, databaseAccessor){
@@ -227,13 +228,21 @@ async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=TO
         }
 
         // if the tolerance is -1, there has been enough element different to justify a new page
-        if (tolerance === -1){
+        if (tolerance === 0){
             return true
         }
             
         // get parent of node, radius -1, until radius is 0
         if (radius > 0){
-            return getRadiusHTML(originalPage, eventPage, rootElementID, tolerance, radius-1)
+            parentID = await originalPage.evaluate((childID) => {
+               let child = document.querySelector(`[data-cms-saneitizer="${childID}"]`)
+               let newParentID = parseInt((child.parentElement).dataset.cmsSaneitizer)
+            //    (function getNextID(child){
+            //         potentialPa
+            //    })(child)
+                return newParentID
+            }, rootElementID)
+            return checkNodes(originalPage, eventPage, parentID, tolerance, radius-1)
         }
 
         // pages are similar enough, to not have a new page
@@ -250,15 +259,17 @@ async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=TO
         let root = document.querySelector(`[data-cms-saneitizer="${rootElementID}"]`)
         // recurse up the dom tree until reaching the body, returning the recurse number
         let newRadius = (function getParent(count, element){
-            if (element.tagName === 'body'){
+            if (element.tagName === 'BODY'){
                 return count
             }
-            return getParent(element.parentElement, count+1)
+            return getParent(count+1, element.parentElement)
         })(0, root)
         return newRadius
     },rootElement.element.dataId)
     return await checkNodes(originalPage, eventPage, rootElement.element.dataId, tolerance, radius)
 }
+
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
 const performEvent = async (elementHandle, event) => {
     switch(event){
@@ -274,6 +285,7 @@ const performEvent = async (elementHandle, event) => {
         default:
             await elementHandle.evaluate(e => e.click())
     }
+    await delay(WAIT_TIME)
 }
 
 async function newPage(page){

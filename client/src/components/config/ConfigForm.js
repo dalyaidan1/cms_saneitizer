@@ -6,8 +6,8 @@ function ConfigForm(props){
     const [config, setConfig] = useState({
         DOMAIN:"",
         DRAW_PAGE_TITLE_FROM : {
-            pageTitle : true,
-            urlSnippet : false
+            pageTitle : false,
+            urlSnippet : true
         },
         DETECT_NON_RESTFUL : true,
         ATTRIBUTES: {
@@ -185,13 +185,16 @@ function ConfigForm(props){
             }
         },
         IGNORABLE_ELEMENTS : [],
-        TOLERANCE : 50,
-        RADIUS : 0,
+        TOLERANCE : 3,
+        RADIUS : -1,
+        WAIT_TIME: 10000,
     })
 
     const [nodePropElements, setNodePropElements] = useState([])
 
     const [elementsToIgnore, setElementsToIgnore] = useState([])
+
+    const [numberRadius, setNumberRadius] = useState(false)
 
     useEffect(() => {
         mapNodeProps()
@@ -255,21 +258,6 @@ function ConfigForm(props){
                     <input 
                         type='radio'
                         name='pageTitles'
-                        id='pageTitle'
-                        defaultChecked={config.DRAW_PAGE_TITLE_FROM.pageTitle}
-                        value='pageTitleTag' 
-                        onChange={(e) => {
-                            config.DRAW_PAGE_TITLE_FROM.pageTitle= e.target.checked ? true : false
-                            setConfig({...config})
-                        }} />
-                    <label htmlFor='pageTitle'>                
-                        Page <code>&lt;title&gt;</code> tag
-                    </label>
-                </div>
-                <div>
-                    <input 
-                        type='radio'
-                        name='pageTitles'
                         id='URL'
                         defaultChecked={config.DRAW_PAGE_TITLE_FROM.urlSnippet}
                         value='URLsnippet' 
@@ -281,6 +269,21 @@ function ConfigForm(props){
                         URL snippet (last part of a URL to its last "/")
                     </label>
                 </div>
+                <div>
+                    <input 
+                        type='radio'
+                        name='pageTitles'
+                        id='pageTitle'
+                        defaultChecked={config.DRAW_PAGE_TITLE_FROM.pageTitle}
+                        value='pageTitleTag' 
+                        onChange={(e) => {
+                            config.DRAW_PAGE_TITLE_FROM.pageTitle= e.target.checked ? true : false
+                            setConfig({...config})
+                        }} />
+                    <label htmlFor='pageTitle'>                
+                        Page <code>&lt;title&gt;</code> tag
+                    </label>
+                </div>                
             </fieldset>
             
             <label htmlFor={"DETECT_NON_RESTFUL"}>
@@ -299,7 +302,7 @@ function ConfigForm(props){
             <fieldset className='attributes'>
                 <legend className='semanticVisible'>Attributes</legend>
                 <dfn>When detecting changes on each page, attributes that are checked will be checked for events. 
-                    If a value is inside ignore, the elements event will be ignored when containing that value</dfn>
+                    If a value is inside ignore, the elements event will be ignored when containing that value. Each subsequent value is checked by OR, not AND.</dfn>
                 <table>
                     <thead>
                         <tr>
@@ -322,17 +325,58 @@ function ConfigForm(props){
                     setOutputArray={setElementsToIgnore} />
             </fieldset>
 
-            <label htmlFor={"RADIUS"}>Radius</label>
-            <dfn>When an event is initiated, how many elements away (ancestors) should be checked</dfn>
-            <input 
-                type='number'
-                min='0'
-                name={"RADIUS"}
-                defaultValue={config.RADIUS}
-                onChange={(e) => {
-                    config.RADIUS= parseInt(e.target.value)
-                    setConfig({...config})
-                }} />
+            <fieldset>
+                <legend>Radius</legend>
+                <dfn>When an event is initiated, how many elements away (ancestors) should be checked</dfn>
+                <div>
+                    <input 
+                        type='radio'
+                        name='radius'
+                        id='bodyRadius'
+                        defaultChecked={true}
+                        value='-1' 
+                        onChange={() => {
+                            setNumberRadius(false)
+                            config.RADIUS= parseInt(-1)
+                            setConfig({...config})
+                        }} />
+                    <label htmlFor='bodyRadius'>
+                        Entire &lt;body&gt; tag
+                    </label>
+                </div>
+                <div>
+                    <input 
+                        type='radio'
+                        name='radius'
+                        id='numberRadius'
+                        defaultChecked={numberRadius}
+                        value='number' 
+                        onChange={() => {
+                            setNumberRadius(true)
+                            config.RADIUS= parseInt(1)
+                            setConfig({...config})
+                        }} />
+                    <label htmlFor='numberRadius'>                
+                        Custom Number
+                    </label>
+                </div>
+                {numberRadius 
+                && <>
+                    <label htmlFor={"RADIUS"}
+                        className='semanticVisible'>Radius number</label>
+                    <input 
+                        type='number'
+                        min='1'
+                        name={"RADIUS"}
+                        defaultValue={config.RADIUS}
+                        onChange={(e) => {
+                            config.RADIUS= parseInt(e.target.value)
+                            setConfig({...config})
+                        }} />
+                </>}
+            </fieldset>
+
+            
 
             <label htmlFor={"TOLERANCE"}>Tolerance</label>
             <dfn>When an event is initiated, how many elements (ancestors) changing qualifies a new page</dfn>
@@ -343,6 +387,18 @@ function ConfigForm(props){
                 defaultValue={config.TOLERANCE}
                 onChange={(e) => {
                     config.TOLERANCE= parseInt(e.target.value)
+                    setConfig({...config})
+                }} />
+            
+            <label htmlFor={"WAIT_TIME"}>Wait Time After Event</label>
+            <dfn>When an event is initiated, how long (in milliseconds) show the program wait for a change to happen</dfn>
+            <input 
+                type='number'
+                min='0'
+                name={"WAIT_TIME"}
+                defaultValue={config.WAIT_TIME}
+                onChange={(e) => {
+                    config.WAIT_TIME= parseInt(e.target.value)
                     setConfig({...config})
                 }} />
 
