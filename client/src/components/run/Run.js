@@ -27,6 +27,9 @@ function Run(props){
     
     return(
         <form>
+            <legend>
+                Run
+            </legend>
             <button 
                 onClick={(e) => {
                     e.preventDefault()
@@ -37,10 +40,10 @@ function Run(props){
             </button>
             {load 
             && <>
-                <section className='loader'>
+                <div className='loader'>
                 <img src={`images/loader/frame${loadImage}.png`} alt='loader'/>
                     <h1>San(e)itizing Website...</h1>
-                </section>
+                </div>
             </>}
             
         </form>

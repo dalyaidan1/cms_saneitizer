@@ -4,6 +4,7 @@ import ConfigForm from './components/config/ConfigForm'
 import Nav from './components/Nav'
 import Run from './components/run/Run'
 import Adjust from './components/edit/Adjust';
+import Export from './components/export/Export';
 
 
 const initialView = {
@@ -22,13 +23,12 @@ function App() {
 
   async function startApp(){
     let data = {...config, start:true}
-    console.log(data)
     let res = await postData('start', data)
     setNav(res.data)
   }
 
   useEffect(() => {
-    if (nav !== "" && view.adjustments !== true){
+    if (nav !== "" && view.adjustments !== true && view.export === false){
       updateView("adjustments")
     }
   },)
@@ -45,7 +45,6 @@ function App() {
 
   async function getZip(){
     let data = await getFileData('export/nav')
-    console.log(data)
     let url = window.URL.createObjectURL(data)
     setData(url)
     window.document.getElementById('data').click()
@@ -56,7 +55,7 @@ function App() {
     <Nav 
       fill={navFill} />
     <main>          
-        {/* {view.configForm 
+        {view.configForm 
         && <ConfigForm 
               submit={(config) => {
                 setConfig(config)
@@ -71,11 +70,15 @@ function App() {
 
         {view.adjustments 
         && <Adjust 
-            // export={} 
+            toExport={() => updateView("export")} 
             nav={nav} /> 
-        } */}
-    <input type="button" value="click" onClick={() => getZip()}/>
-    <a href={data} id="data" download></a>
+        }
+
+      {view.export 
+        && <Export 
+            getZip={() => getZip()}
+            data={data} /> 
+        }
     </main>
     </>
   )

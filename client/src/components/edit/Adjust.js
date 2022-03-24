@@ -4,18 +4,19 @@ import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined';
 
 function Adjust(props){
     return(
-        <>
-            <section id='navCode'
+        <section>
+            <h1>Adjust</h1>
+            <article id='navCode'
                 dangerouslySetInnerHTML={{__html: props.nav}}>
-            </section>
+            </article>
             <button 
                 onClick={(e) => {
                     e.preventDefault()
-                    props.Export()
+                    props.toExport()
                 }}>
                 Next <DoubleArrowOutlinedIcon/>
             </button>
-        </>
+        </section>
     )
 }
 

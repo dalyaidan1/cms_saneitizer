@@ -25,13 +25,14 @@ app.post('/api/start', async (req, res) => {
     const fs = require('fs')
     let decodedResponse = req.body
     if (decodedResponse.data.start){
-        await writeConfig(decodedResponse.data)
-        let sendBack = await start()
-        if (sendBack){
-            await exportData(false, true)
-            let data = (fs.readFileSync('./public/html/navigation.html')).toString()
-            res.json({"data":data})
-        }        
+        if (await writeConfig(decodedResponse.data)){
+            let sendBack = await start()
+            if (sendBack){
+                await exportData(false, true)
+                let data = (fs.readFileSync('./public/html/navigation.html')).toString()
+                res.json({"data":data})
+            } 
+        }       
     }   	
 })
 
@@ -71,6 +72,7 @@ async function writeConfig(data){
     // set the config
     await fsPromises.writeFile('./src/USER_CONFIG.json', JSON.stringify(data))
         .catch(error => console.error(error))
+    return true
 }
 
 async function exportData(withFiles, forAdjustments){
