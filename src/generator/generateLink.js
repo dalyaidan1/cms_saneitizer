@@ -28,7 +28,7 @@ async function newLink(node, makeDirectory, forAdjustments){
 }
 
 async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustments){
-    let tempLink = `<li>\n<span>${formatDirectoryTitle(node.properties.name)}</span>\n<ul>\n`
+    let tempLink = `<li>\n<span id=${node.properties.id}>${formatDirectoryTitle(node.properties.name)}</span>\n<ul>\n`
     fs.appendFileSync(NAV_FILE, tempLink)
 
     if (makeDirectory){
@@ -61,7 +61,7 @@ async function generateLink(node, databaseAccessor, makeDirectory, forAdjustment
         
     }
     if(!(fileString
-        .includes(`<span>${formatDirectoryTitle(node.properties.name)}</span>`))){  
+        .includes(`<span id=${node.properties.id}>${formatDirectoryTitle(node.properties.name)}</span>`))){  
         if (node.labels[0] === "Directory"){
             await newDirectory(node, databaseAccessor, makeDirectory, forAdjustments)
         }

@@ -65,7 +65,7 @@ async function connect(databaseAccessor){
 
 async function exportHTML(databaseDriver, filesToo, forAdjustments){
 	const exportTimeStart = Date.now()
-	const databaseAccessor = await new DatabaseAccessor(databaseDriver, domainHome)		
+	const databaseAccessor = new DatabaseAccessor(databaseDriver, domainHome)
 
 	try {		
 		console.log("Exporting")
@@ -77,7 +77,7 @@ async function exportHTML(databaseDriver, filesToo, forAdjustments){
 	catch(err){
 		timeEnd = Date.now()
 		console.log(err)
-		console.log(`Export error time: ${calcTime(timeStart, timeEnd)} minute(s)`)
+		console.log(`Export error time: ${calcTime(exportTimeStart, timeEnd)} minute(s)`)
 		databaseDriver.close()
 	}
 }

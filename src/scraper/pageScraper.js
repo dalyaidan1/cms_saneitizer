@@ -1,18 +1,14 @@
 const {detect} = require('./contentShiftDetector')
+const {minimizeBrowser} = require('./scraperHelpers')
 const config = require('../USER_CONFIG.json')
 const DETECT_NON_RESTFUL = config['DETECT_NON_RESTFUL']
 let DOMAIN
 
-async function minimizeBrowser(page){
-	// Create raw protocol session.
-    const session = await page.target().createCDPSession();
-    const {windowId} = await session.send('Browser.getWindowForTarget');
-    await session.send('Browser.setWindowBounds', {windowId, bounds: {windowState: 'minimized'}});
-}
+
 
 const scraperObject = {
     async scraper(browser, url, databaseAccessor){
-        let page = await browser.newPage()
+        let [page] = await browser.pages()
 		await minimizeBrowser(page)
 		DOMAIN = url
 		async function scrapeCurrentPage(outerURL){
@@ -20,11 +16,16 @@ const scraperObject = {
 
 			// navigate to the selected page
 			await page.goto(outerURL)
+			await minimizeBrowser(page)
 			// wait for content to load
 			await page.waitForNetworkIdle()
 
 			// account for redirect links
-			const realOuterURL = await page.url()			
+			const realOuterURL = await page.url()
+
+			if (realOuterURL.match(/#/) !== null){
+				return
+			}			
 
 			// const parentURLKey = url === domainHome ? "/" : removeDomainFromURL(url)
 			let outerPageName
@@ -43,8 +44,12 @@ const scraperObject = {
 				outerPageName = await databaseAccessor.updatePageNodeFromPage(page)
 			}		
 			
+			// redirects
 			if (outerURL !== realOuterURL){
-				await databaseAccessor.convertPageNodeToRedirectFromURL(outerURL, realOuterURL)
+				let redirectStatus = await databaseAccessor.isURLNewNode(realOuterURL)
+				if (redirectStatus){
+					await databaseAccessor.addRedirectNode(outerURL, realOuterURL)
+				}
 			}
 
 			// scape all anchors on the page

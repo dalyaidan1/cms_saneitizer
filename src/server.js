@@ -12,7 +12,16 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.json())
 
 
-app.listen(5000)
+app.listen(process.env.BACK_END_PORT);
+
+(async () => {
+    const appBrowserObject = require('./scraper/browser')
+    let appBrowser = await appBrowserObject.startFrontBrowser()
+    let [page] = await appBrowser.pages()
+    await page.setViewport({ width: 0, height: 0 })
+})()
+
+
 
 // home page route
 app.get('/', function (req, res) {

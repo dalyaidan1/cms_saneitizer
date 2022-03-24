@@ -6,6 +6,7 @@ const TOLERANCE = USER_CONFIG["TOLERANCE"]
 const RADIUS = USER_CONFIG["RADIUS"]
 const WAIT_TIME = USER_CONFIG["WAIT_TIME"]
 let browser
+const {minimizeBrowser} = require('./scraperHelpers')
 
 async function detect(b, page, databaseAccessor){
     // set browser
@@ -293,6 +294,8 @@ async function newPage(page){
 
     await page2.goto(await page.url())
 	
+    await minimizeBrowser(page)
+
     // wait for content to load
 	await page2.waitForNetworkIdle()
 

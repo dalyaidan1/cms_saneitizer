@@ -278,6 +278,29 @@ class DatabaseAccessor {
             })
     }
 
+    async addRedirectNode(startURL, endURL){
+        const startName = this.helper.formatPageName(startURL, this.domainHome)
+        const endName = this.helper.formatPageName(endURL, this.domainHome)
+
+        let session = await this.driver.session()
+        // set the page props
+        await session
+            .run(
+                `MATCH (endPage:Page {name: '${endName}'})
+                CREATE (startPage:Redirects {
+                    name: '${startName}',
+                    sanitized: true,
+                    layer: endPage.layer
+                })-[:REDIRECTS]->(endPage)`
+            )
+            .catch(error => {
+                this.logError(error, startURL);
+            })
+            .then(async () => {
+                await session.close()                                               
+            })
+    }
+
 
     async getMaxLayer(){
         let max = 0
@@ -400,7 +423,7 @@ class DatabaseAccessor {
         let session = await this.driver.session()
         await session
             .run(
-                `OPTIONAL MATCH (page:Page {name: '${name}'})
+                `OPTIONAL MATCH (page {name: '${name}'})
                 RETURN page.sanitized AS sanitized`)
             .then(result => {
                 if (result.records[0].get('sanitized') === true){

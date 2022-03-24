@@ -10,7 +10,7 @@ const {JSDOM} = jsdom
 const exporter = {
     async generateExport(databaseAccessor, makeDirectory=false, forAdjustments){
         const firstLayer = 0
-        const lastLayer = await databaseAccessor.getMaxLayer();
+        // const lastLayer = await databaseAccessor.getMaxLayer();
         const firstNavParts = "<html>\n<nav>\n<ul>\n"
         fs.writeFileSync(NAV_FILE, firstNavParts)
         async function generateLayer(layer){
