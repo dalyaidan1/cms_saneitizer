@@ -11,7 +11,8 @@ lerna-debug.log*
 outputHistory
 
 # Exports
-public/html/
+public
+public/
 public/html/*.html
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
