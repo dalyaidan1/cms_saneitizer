@@ -16,8 +16,13 @@ async function newLink(node, makeDirectory, forAdjustments){
     fs.appendFileSync(NAV_FILE, tempLink)
     if (makeDirectory){
         let nodeName = node.properties.name
+
+        if (nodeName === ''){
+            nodeName = `/index`
+        }
+
         if ((nodeName).match(/^\//) === null){
-            nodeName = `/index${nodeName}`
+            nodeName = `/${nodeName}`
         }
         const filePathName = `public/html${nodeName}`.match(/\.html/) !== null 
         ? `public/html${nodeName}`
@@ -32,7 +37,10 @@ async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustment
     fs.appendFileSync(NAV_FILE, tempLink)
 
     if (makeDirectory){
-        fs.mkdirSync(`public/html${node.properties.name}`, { recursive: true })
+        let dpath = (node.properties.name).match(/^\//) === null 
+            ? `/${node.properties.name}`
+            : node.properties.name
+        fs.mkdirSync(`public/html${dpath}`, { recursive: true })
     }
 
     let name = node.properties.name === '' 

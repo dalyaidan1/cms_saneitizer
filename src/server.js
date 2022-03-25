@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const driver = require('./database/neo4jDriver')
+const PageSender = require('./scraper/pageSender')
 
 // cors middleware
 const cors = require('cors')
@@ -35,9 +36,9 @@ app.post('/api/start', async (req, res) => {
     let decodedResponse = req.body
     if (decodedResponse.data.start){
         if (await writeConfig(decodedResponse.data)){
-            let sendBack = await start()
+            let sendBack = true // await start()
             if (sendBack){
-                await exportData(false, true)
+               // await exportData(false, true)
                 let data = (fs.readFileSync('./public/html/navigation.html')).toString()
                 res.json({"data":data})
             } 

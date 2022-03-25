@@ -432,6 +432,10 @@ button svg{
   display: list-item;
 }
 
+.adjuster{
+  height: auto;
+}
+
 /* export */
 .export h1{
   font-size: 1.5rem;
