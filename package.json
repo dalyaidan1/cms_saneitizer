@@ -1,0 +1,35 @@
+{
+  "name": "cms_saneitizer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "./src/server.js",
+    "start": "node ./src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dalyaidan1/cms_saneitizer.git"
+  },
+  "author": "Aidan Daly",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dalyaidan1/cms_saneitizer/issues"
+  },
+  "homepage": "https://github.com/dalyaidan1/cms_saneitizer#readme",
+  "dependencies": {
+    "@mozilla/readability": "^0.4.1",
+    "adm-zip": "^0.5.9",
+    "body-parser": "^1.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "jsdom": "^19.0.0",
+    "neo4j-driver": "^4.4.2",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1",
+    "puppeteer": "^13.1.1",
+    "sanitize-html": "^2.7.0"
+  }
+}
