@@ -62,8 +62,15 @@ function removeDomainFromURL(url, domainHome){
 }
 
 function formatPageName(url, domainHome){
+    url = url.replace(/www\./, '')
     url = removeDomainFromURL(url, domainHome)
-    url = url.replace(/\/$/, '')
+    // if (url !== ''){
+    //     url = url.replace(/\/$/, '')
+    // }
+    // if (url.match(/\/$/) === null){
+    //     url = `${url}/`
+    // }
+
     return url
 }
 

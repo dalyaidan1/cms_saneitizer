@@ -1,16 +1,14 @@
 const {detect} = require('./contentShiftDetector')
-const {minimizeBrowser} = require('./scraperHelpers')
+const {minimizeBrowser, validateFirstURL} = require('./scraperHelpers')
 const config = require('../USER_CONFIG.json')
 const DETECT_NON_RESTFUL = config['DETECT_NON_RESTFUL']
 let DOMAIN
 
-
-
 const scraperObject = {
-    async scraper(browser, url, databaseAccessor){
+    async scraper(browser, domain, databaseAccessor){
         let [page] = await browser.pages()
 		await minimizeBrowser(page)
-		DOMAIN = url
+		DOMAIN = domain
 		async function scrapeCurrentPage(outerURL){
 			console.log(`Navigating to ${outerURL}...`)
 
@@ -63,10 +61,17 @@ const scraperObject = {
 				return anchors
 			})
 
+			// remove same page 'hyper-links'
+			urls = urls.map(url => url.replace(/#/,''))
+
 			// remove duplicates
 			urls = Array.from(new Set(urls));
 
+			// get rid of www.
+			urls = urls.map(url => url.replace(/www\./, ''))
+
 			// check that the domain is correct
+			// TODO: match against the correct type in the domain entered, ie... wwww, vs nothing, http bs https
 			urls = urls.filter(url => url.match(DOMAIN) !== null)
 
 			// make each url a new node...
@@ -90,12 +95,9 @@ const scraperObject = {
 			}
 			return
 		}
-		// make sure the first url has a "/" at the end
-		if (url.match(/\/$/) === null){
-			url = `${url}/`
-		}	
+		let firstURL = validateFirstURL(DOMAIN)
 
-		await scrapeCurrentPage(url) 
+		await scrapeCurrentPage(firstURL) 
 		await page.close();
     }
 }
