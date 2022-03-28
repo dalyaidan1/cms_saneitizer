@@ -7,12 +7,26 @@ const {
     escapeFilename,
 } = require('./generateHelpers')
 
-async function newLink(node, makeDirectory, forAdjustments){
+async function newLink(node, makeDirectory, forAdjustments, currentNav){
     let tempLink = `<li><a href="${formatAnchorURL(node.properties.name)}.html">${formatAnchorURL(node.properties.title)}</a></li>\n`
     if (forAdjustments){
         tempLink = `<li data-cmss-name=${node.properties.name}>
-                        <a href="${node.properties.url}" target="_blank">${formatAnchorURL(node.properties.title)}</a></li>\n`
+                        <a href="${node.properties.url}" target="_blank">${formatAnchorURL(node.properties.title)}</a></li>\n`        
     }
+    currentNav.append({element:'li', type:'start', label:"L", props:{
+        name:node.properties.name,
+        layer:node.properties.layer,
+        url:node.properties.url,
+        id:node.properties.id,
+    }})
+    currentNav.append({element:'a', type:'start', props:{
+        name:node.properties.name,
+        layer:node.properties.layer,
+        url:node.properties.url,
+        id:node.properties.id,}
+    })
+    currentNav.append({element:'a', type:'end'})
+    currentNav.append({element:'li', type:'end'})
     fs.appendFileSync(NAV_FILE, tempLink)
     if (makeDirectory){
         let nodeName = node.properties.name
@@ -32,8 +46,19 @@ async function newLink(node, makeDirectory, forAdjustments){
     }
 }
 
-async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustments){
+async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustments, currentNav){
     let tempLink = `<li>\n<span id=${node.properties.id}>${formatDirectoryTitle(node.properties.name)}</span>\n<ul>\n`
+
+    currentNav.append({element:'li', type:'start', label:"D"})
+    currentNav.append({element:'span', type:'start', props:{
+        name:node.properties.name,
+        layer:node.properties.layer,
+        url:node.properties.url,
+        id:node.properties.id,}
+    })
+    currentNav.append({element:'span', type:'end'})
+    currentNav.append({element:'ul', type:'start'})
+
     fs.appendFileSync(NAV_FILE, tempLink)
 
     if (makeDirectory){
@@ -49,13 +74,15 @@ async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustment
     let children = await databaseAccessor.getNodeChildren(name)
     if (children[0] !== null){
         for (child in children){
-            await generateLink(children[child], databaseAccessor, makeDirectory, forAdjustments)
+            await generateLink(children[child], databaseAccessor, makeDirectory, forAdjustments, currentNav)
         }            
     }
+    currentNav.append({element:'ul', type:'end'})
+    currentNav.append({element:'li', type:'end'})
     fs.appendFileSync(NAV_FILE, '</ul>\n</li>\n')
 }
 
-async function generateLink(node, databaseAccessor, makeDirectory, forAdjustments){
+async function generateLink(node, databaseAccessor, makeDirectory, forAdjustments, currentNav){
     let file = fs.readFileSync(NAV_FILE)
     let fileString = file.toString()
     
@@ -64,14 +91,14 @@ async function generateLink(node, databaseAccessor, makeDirectory, forAdjustment
                 ? node.properties.url 
                 :`${formatAnchorURL(node.properties.name)}.html`))){        
         if (node.labels[0] === "Page"){
-            await newLink(node, makeDirectory, forAdjustments)
+            await newLink(node, makeDirectory, forAdjustments, currentNav)
         }
         
     }
     if(!(fileString
         .includes(`<span id=${node.properties.id}>${formatDirectoryTitle(node.properties.name)}</span>`))){  
         if (node.labels[0] === "Directory"){
-            await newDirectory(node, databaseAccessor, makeDirectory, forAdjustments)
+            await newDirectory(node, databaseAccessor, makeDirectory, forAdjustments, currentNav)
         }
     }
 }

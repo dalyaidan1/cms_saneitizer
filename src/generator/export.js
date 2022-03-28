@@ -8,20 +8,24 @@ const {JSDOM} = jsdom
 // const navigation = fs.writeFileSync('../../public/html/navigation.html', JSON.stringify(pageTracker))
 // write first html, nav, and ul tags
 const exporter = {
-    async generateExport(databaseAccessor, makeDirectory=false, forAdjustments){
+    async generateExport(databaseAccessor, makeDirectory=false, forAdjustments, currentNav){
         const firstLayer = 0
         // const lastLayer = await databaseAccessor.getMaxLayer();
         const firstNavParts = "<html>\n<nav>\n<ul>\n"
         fs.writeFileSync(NAV_FILE, firstNavParts)
+        currentNav.append({element:'html', type:'start'})
+        currentNav.append({element:'nav', type:'start'})
+        currentNav.append({element:'ul', type:'start'})
         async function generateLayer(layer){
             if (layer <= 1){
                 const layerNodes = await databaseAccessor.getAllNodesFromLayer(layer)
                 for (let node in layerNodes){
-                    await linkMaker.generateLink(layerNodes[node], databaseAccessor, makeDirectory, forAdjustments)
+                    await linkMaker.generateLink(layerNodes[node], databaseAccessor, makeDirectory, forAdjustments, currentNav)
                 }            
                 return generateLayer(layer+1)
             } else {
                 fs.appendFileSync(NAV_FILE, '</nav>')
+                currentNav.append({element:'nav', type:'close'})
                 // remove empties
                 let navToEdit = new JSDOM((fs.readFileSync(NAV_FILE)).toString())
                 let spans = Array.from(navToEdit.window.document.querySelectorAll('span'))
