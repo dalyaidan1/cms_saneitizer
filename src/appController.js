@@ -74,7 +74,7 @@ async function exportHTML(databaseDriver, filesToo, forAdjustments, currentNav){
 		await exporter.generateExport(databaseAccessor, filesToo, forAdjustments, currentNav)
 		timeEnd = Date.now()
 		console.log(`Export time: ${calcTime(exportTimeStart, timeEnd)} minute(s)`)
-		console.log(currentNav.get())
+		// console.log(currentNav.get())
 		// databaseDriver.close()
 	}
 	catch(err){

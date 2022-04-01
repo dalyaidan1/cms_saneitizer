@@ -13,9 +13,6 @@ const exporter = {
         // const lastLayer = await databaseAccessor.getMaxLayer();
         const firstNavParts = "<html>\n<nav>\n<ul>\n"
         fs.writeFileSync(NAV_FILE, firstNavParts)
-        currentNav.append({element:'html', type:'start'})
-        currentNav.append({element:'nav', type:'start'})
-        currentNav.append({element:'ul', type:'start'})
         async function generateLayer(layer){
             if (layer <= 1){
                 const layerNodes = await databaseAccessor.getAllNodesFromLayer(layer)
@@ -25,7 +22,6 @@ const exporter = {
                 return generateLayer(layer+1)
             } else {
                 fs.appendFileSync(NAV_FILE, '</nav>')
-                currentNav.append({element:'nav', type:'close'})
                 // remove empties
                 let navToEdit = new JSDOM((fs.readFileSync(NAV_FILE)).toString())
                 let spans = Array.from(navToEdit.window.document.querySelectorAll('span'))
