@@ -3,8 +3,10 @@ const DatabaseAccessor = require('./database/databaseAccessor')
 const treeConnector = require('./sanitizer/treeConnector')
 const exporter = require('./generator/export')
 const config = require('./USER_CONFIG.json')
+const {formatDomain} = require('./scraper/scraperHelpers')
 // TODO make sure that it does not have a "/" at the end
-const domainHome = config.DOMAIN
+const domainHome = formatDomain(config.DOMAIN)
+
 
 async function scrapeAll(browserInstance, databaseDriver){
 	let browser
@@ -63,15 +65,16 @@ async function connect(databaseAccessor){
 }
 
 
-async function exportHTML(databaseDriver, filesToo, forAdjustments){
+async function exportHTML(databaseDriver, filesToo, forAdjustments, currentNav){
 	const exportTimeStart = Date.now()
 	const databaseAccessor = new DatabaseAccessor(databaseDriver, domainHome)
 
 	try {		
 		console.log("Exporting")
-		await exporter.generateExport(databaseAccessor, filesToo, forAdjustments)
+		await exporter.generateExport(databaseAccessor, filesToo, forAdjustments, currentNav)
 		timeEnd = Date.now()
 		console.log(`Export time: ${calcTime(exportTimeStart, timeEnd)} minute(s)`)
+		// console.log(currentNav.get())
 		// databaseDriver.close()
 	}
 	catch(err){

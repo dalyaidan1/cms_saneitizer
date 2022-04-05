@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 const driver = require('./database/neo4jDriver')
+const Navigation = require('./generator/navigation')
+const currentNav = new Navigation()
 
 // cors middleware
 const cors = require('cors')
@@ -34,12 +36,14 @@ app.post('/api/start', async (req, res) => {
     const fs = require('fs')
     let decodedResponse = req.body
     if (decodedResponse.data.start){
-        if (await writeConfig(decodedResponse.data)){
+        let config = await writeConfig(decodedResponse.data)
+        if (config){
             let sendBack = await start()
             if (sendBack){
                 await exportData(false, true)
                 let data = (fs.readFileSync('./public/html/navigation.html')).toString()
-                res.json({"data":data})
+                let nav = currentNav.get()
+                res.json({"data":data, nav:nav})
             } 
         }       
     }   	
@@ -86,5 +90,6 @@ async function writeConfig(data){
 
 async function exportData(withFiles, forAdjustments){
     const {exportHTML} = require('./appController')
-    return await exportHTML(driver, withFiles, forAdjustments)
+    currentNav.clear()
+    return await exportHTML(driver, withFiles, forAdjustments, currentNav)
 }

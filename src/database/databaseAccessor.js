@@ -35,6 +35,14 @@ class DatabaseAccessor {
             sanitized = true
         }
 
+        const shift_page = options["shift_page"] === undefined
+            ? false
+            : true
+
+        const pre_shift_url = options["pre_shift_url"] === undefined
+            ? url
+            : options["pre_shift_url"]
+
         let session = await this.driver.session()
         await session
             .run(
@@ -46,7 +54,9 @@ class DatabaseAccessor {
                     title: '${title}',
                     content: \'${content}\',
                     sanitized: ${sanitized},
-                    occurrences: $occurrences
+                    occurrences: $occurrences,
+                    shift_page: ${shift_page},
+                    pre_shift_url: '${pre_shift_url}'
                 })`, {
                     layer: this.neo4j.int(layer),
                     occurrences: this.neo4j.int(1)

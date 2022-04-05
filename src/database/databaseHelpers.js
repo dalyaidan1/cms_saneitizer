@@ -62,8 +62,15 @@ function removeDomainFromURL(url, domainHome){
 }
 
 function formatPageName(url, domainHome){
+    url = url.replace(/www\./, '')
     url = removeDomainFromURL(url, domainHome)
-    url = url.replace(/\/$/, '')
+    // if (url !== ''){
+    //     url = url.replace(/\/$/, '')
+    // }
+    // if (url.match(/\/$/) === null){
+    //     url = `${url}/`
+    // }
+
     return url
 }
 
@@ -75,7 +82,10 @@ async function getTitle(page){
     if (titleConfig.urlSnippet){
         let url = await page.url()
         // match the last part of the url to the / or the first / to the second /, then get ride of /
-        url = String(url.match(/\/[a-zA-Z0-9.%?='"_-]*\/$|\/[a-zA-Z0-9.%?='"_-]*$/)).replace(/\//, '')
+        url = String(
+            url
+                .match(/\/[a-zA-Z0-9.%?='"_-]*\/$|\/[a-zA-Z0-9.%?='"_-]*$|\/[a-zA-Z0-9.%?='"_#-]*\/[#\?=][a-zA-Z0-9.%?='"_-]*$/))
+                .replace(/\//, '')
         return url  
     }
 }
