@@ -16,12 +16,12 @@ app.use(bodyParser.json())
 
 app.listen(process.env.BACK_END_PORT);
 
-// (async () => {
-//     const appBrowserObject = require('./scraper/browser')
-//     let appBrowser = await appBrowserObject.startFrontBrowser()
-//     let [page] = await appBrowser.pages()
-//     await page.setViewport({ width: 0, height: 0 })
-// })()
+(async () => {
+    const appBrowserObject = require('./scraper/browser')
+    let appBrowser = await appBrowserObject.startFrontBrowser()
+    let [page] = await appBrowser.pages()
+    await page.setViewport({ width: 0, height: 0 })
+})()
 
 
 
@@ -36,8 +36,9 @@ app.post('/api/start', async (req, res) => {
     const fs = require('fs')
     let decodedResponse = req.body
     if (decodedResponse.data.start){
-        if (await writeConfig(decodedResponse.data)){
-            let sendBack = true// await start()
+        let config = await writeConfig(decodedResponse.data)
+        if (config){
+            let sendBack = await start()
             if (sendBack){
                 await exportData(false, true)
                 let data = (fs.readFileSync('./public/html/navigation.html')).toString()

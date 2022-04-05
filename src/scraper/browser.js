@@ -23,7 +23,7 @@ async function startFrontBrowser(){
 	    browser = await puppeteer.launch({
 	        headless: false,
 			defaultViewport: null,
-	        args: ["--start-maximized", "--no-default-browser-check", "-test-type", `--app=${process.env.FRONT_END_URL_DEV}`],
+	        args: ["--start-maximized", "--no-default-browser-check", "-test-type", `--app=${process.env.FRONT_END_URL_PROD}`],
 			ignoreDefaultArgs: ["--enable-automation"],
 	        'ignoreHTTPSErrors': true
 	    })

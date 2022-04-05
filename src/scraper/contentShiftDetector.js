@@ -7,6 +7,7 @@ const RADIUS = USER_CONFIG["RADIUS"]
 const WAIT_TIME = USER_CONFIG["WAIT_TIME"]
 let browser
 const {minimizeBrowser} = require('./scraperHelpers')
+const {getTitle} = require('../database/databaseHelpers')
 
 async function detect(b, page, databaseAccessor){
     // set browser
@@ -41,23 +42,26 @@ async function detect(b, page, databaseAccessor){
                         let oldURL = await page2.url()
                         
                         // get rid of ending slash
-                        oldURL = oldURL.replace(/\/$/, '')
+                        let procURL = oldURL.replace(/\/$/, '')
 
                         // get rid of a .<ext> in a file, unless a top level page (eg. abc.com/blah)
-                        if (oldURL.match(/\.com$/) === null){
-                            oldURL = oldURL.replace(/\.[a-zA-Z0-9]*$/, '')
+                        if (procURL.match(/\.com$/) === null){
+                            procURL = procURL.replace(/\.[a-zA-Z0-9]*$/, '')
                         }
                         
 
-                        let newTitle = `${oldTitle} - ${node.element.dataId}`                        
-                        let newURL = `${oldURL}_page${node.element.dataId}-${Math.floor(Math.random() * 100000)}_.html`
+                        let newTitle = `${await getTitle(page)} - ${event}-${node.element.dataId}`                        
+                        let newURL = `${procURL}_page${node.element.dataId}-${event}-${Math.floor(Math.random() * 100000)}_`
                         // check if this is new
                         const subPageNew = await databaseAccessor.isURLNewNode(newURL)
                         if (subPageNew){
                             // set the new page
                             await databaseAccessor.setNewPageNodeFromPage(page2, {
                                 url:newURL,
-                                title:newTitle})
+                                title:newTitle,
+                                shift_page:false,
+                                pre_shift_url: oldURL,
+                            })
                             elementIDsAndEventsToBeChanged.push(
                                 {
                                     dataId:node.element.dataId,

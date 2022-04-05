@@ -15,6 +15,8 @@ async function newLink(node, makeDirectory, forAdjustments, currentNav){
         layer:node.properties.layer.toNumber(),
         url:node.properties.url,
         id:node.properties.id,
+        shift_page:node.properties.shift_page,
+        pre_shift_url:node.properties.pre_shift_url,
         type:"Page",
     }
 
