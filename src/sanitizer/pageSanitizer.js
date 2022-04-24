@@ -26,7 +26,9 @@ function pageSanitizer(page, domain){
     
 
     // basic sanitization
-    page = sanitizeHTML(page)
+    page = sanitizeHTML(page, {
+        allowedTags: sanitizeHTML.defaults.allowedTags.concat([ 'img', 'iframe' ])
+      })
 
     // clean tags 
     // make a real page to output, get outerHTML, remove it, then import back?

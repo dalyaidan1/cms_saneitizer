@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const driver = require('./database/neo4jDriver')
 const fs = require('fs')
+const fsPromises = fs.promises
 const Navigation = require('./generator/navigation')
 const currentNav = new Navigation()
 
@@ -29,16 +30,20 @@ app.listen(process.env.BACK_END_PORT);
 app.post('/api/start', async (req, res) => {
     let decodedResponse = req.body
     if (decodedResponse.data.start){
-        let config = await writeConfig(decodedResponse.data)
-        if (config){
-            let sendBack = await start()
-            if (sendBack){
-                await exportData(false, true)
-                let data = (fs.readFileSync('./public/html/navigation.html')).toString()
-                let nav = currentNav.get()
-                res.json({"data":data, nav:nav})
-            } 
-        }       
+        await writeConfig(decodedResponse.data)
+        let sendBack = await start()
+        if (sendBack){
+            await exportData(false, true).then(async () => {
+                await fsPromises.readFile('./public/html/navigation.html')
+                    .catch(error => console.error(error))
+                    .then(data => {
+                        data = data.toString()
+                        let nav = currentNav.get()
+                        res.json({"data":data, nav:nav})
+                    })
+            })
+            
+        }      
     }   	
 })
 
@@ -46,9 +51,11 @@ app.post('/api/start', async (req, res) => {
 // export nav route
 app.get('/api/export/nav', async (req, res) => {
     await exportData(true, false)
-    await zip()
-    res.download('./public/newSite.zip')
-    
+    .then(async () => {
+        await delay(5000)
+        await zip().then(            
+            res.download('./public/newSite.zip') )
+    })          
 })
 
 
@@ -78,8 +85,9 @@ async function zip(){
     const AdmZip = require('adm-zip')
     const zip = new AdmZip()
     const outputFile = "./public/newSite.zip"
-    await zip.addLocalFolder("./public/html")
-    await zip.writeZip(outputFile)
+    zip.addLocalFolder("./public/html")
+    zip.writeZip(outputFile)
+    await delay(5000)
 }
 
 async function start(){
@@ -95,16 +103,15 @@ async function start(){
 }
 
 async function writeConfig(data){
-    const fsPromises = require('fs').promises
-
     // set the config
-    await fsPromises.writeFile('./src/USER_CONFIG.json', JSON.stringify(data))
+    return await fsPromises.writeFile('./src/USER_CONFIG.json', JSON.stringify(data))
         .catch(error => console.error(error))
-    return true
 }
 
 async function exportData(withFiles, forAdjustments){
     const {exportHTML} = require('./appController')
     currentNav.clear()
-    return await exportHTML(driver, withFiles, forAdjustments, currentNav)
+    await exportHTML(driver, withFiles, forAdjustments, currentNav)
 }
+
+const delay = ms => new Promise(res => setTimeout(res, ms));

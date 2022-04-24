@@ -43,21 +43,6 @@ const exporter = {
         return await generateLayer(firstLayer) 
     }
 }
-// get a layer
 
 
 module.exports = exporter
-// for each node check if page or dir
-// if a page"", write an anchor with the url and title nested inside a li
-{/* <li><a href="page.url">PAGE NAME</a></li> */}
-
-// if a dir make a ul(dir items) and a span(dir name) nested in a li
-{/* <li>
-    <span>DIR NAME</span>
-    <ul>
-        
-    </ul>
-</li> */}
-// if children exist, get the next layer of the dir and repeat from the for
-
-// recursively call get a layer + 1 until, last layer

@@ -38,17 +38,22 @@ async function newLink(node, makeDirectory, forAdjustments, currentNav){
     if (makeDirectory){
         let nodeName = node.properties.name
 
-        if (nodeName === ''){
+        if (nodeName === '' || nodeName === '/'){
             nodeName = `/index`
         }
 
         if ((nodeName).match(/^\//) === null){
             nodeName = `/${nodeName}`
         }
+
+        nodeName = nodeName.replace(/\/$/, '')
+
         const filePathName = `public/html${nodeName}`.match(/\.html/) !== null 
         ? `public/html${nodeName}`
         : `public/html${nodeName}.html`
         
+        console.log(node.properties.url, nodeName, filePathName)
+
         fs.writeFileSync(escapeFilename(filePathName), deScapeContent(node.properties.content))
     }
 }
@@ -104,7 +109,7 @@ async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustment
 async function generateLink(node, databaseAccessor, makeDirectory, forAdjustments, currentNav){
     let file = fs.readFileSync(NAV_FILE)
     let fileString = file.toString()
-    
+
     if(!(fileString
             .includes(forAdjustments 
                 ? node.properties.url 
