@@ -9,6 +9,13 @@ let browser
 const {minimizeBrowser} = require('./scraperHelpers')
 const {getTitle} = require('../database/databaseHelpers')
 
+/**
+ * Detect non-RESTful content on a page
+ *  
+ * @param {Browser} b puppeteer browser object
+ * @param {Page} page puppeteer page object
+ * @param {DatabaseAccessor} databaseAccessor object giving access to database transactions
+ */
 async function detect(b, page, databaseAccessor){
     // set browser
     browser = b
@@ -81,6 +88,12 @@ async function detect(b, page, databaseAccessor){
     await page2.close()
 }
 
+/**
+ * Update the location event changes on a page
+ * 
+ * @param {Page} page puppeteer page object to update
+ * @param {Array} elementIDsAndEventsToBeChanged list of elements and events to use
+ */
 async function updateBasePageEvents(page, elementIDsAndEventsToBeChanged){
     await page.evaluate((elementIDsAndEventsToBeChanged) => {
         for (node of elementIDsAndEventsToBeChanged){
@@ -93,13 +106,18 @@ async function updateBasePageEvents(page, elementIDsAndEventsToBeChanged){
     }, elementIDsAndEventsToBeChanged)
 }
 
+/**
+ * Check a page for any events
+ * 
+ * @param {Page} page puppeteer page object to update
+ * @returns array of elements and events to check
+ */
 async function detectEventElements(page){
     const client = await page.target().createCDPSession()  
 
     async function getListener(objType){
         const {result} = await client
             .send('Runtime.evaluate', {expression: objType})
-        // return result
         const {listeners} = await client
             .send('DOMDebugger.getEventListeners', {objectId: result.objectId})
         return listeners
@@ -119,7 +137,6 @@ async function detectEventElements(page){
                         "tag": el.tagName,
                         "attributes": ((attrs) => {
                             let rtAttrs = []
-                            // debugger;
                             for (let attr = 0; attr < attrs.length; attr++) { 
                                 rtAttrs.push({
                                     "name": attrs.item(attr).name,
@@ -141,6 +158,11 @@ async function detectEventElements(page){
     return listeners
 }
 
+/**
+ * Assign unique numbers in a dataset attribute to all elements on the page
+ * 
+ * @param {Page} page puppeteer page object to update
+ */
 async function assignPageIDs(page){
     const injectScript = `(() => { 
         \nconst allTags = document.getElementsByTagName("*")
@@ -150,22 +172,39 @@ async function assignPageIDs(page){
     await page.addScriptTag({content:injectScript, type:"text/javascript"})
 }
 
+/**
+ * Get the puppeteer ElementHandle Object for an element in the page
+ * 
+ * @param {Page} page puppeteer page object to update
+ * @param {Object} element element object from list of elements and events
+ * @returns 
+ */
 async function getElementHandle(page, element){
     return await page.$(`[data-cms-saneitizer="${element.dataId}"]`)
 }
 
-
-// check that the element is not in ignored elements 
+/**
+ * Check that the element is not in ignored elements.
+ * follows format rules of:
+ * https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_element_tagname2
+ * 
+ * @param {String} element TAG NAME of element
+ * @returns true or false
+ */  
 const checkValidElement = async (element) => {
-    // TODO: make sure IGN_ELEM follows format rules of 
-    // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_element_tagname2
+    // TODO: make sure IGN_ELEM 
     if (IGNORABLE_ELEMENTS.includes(element)){
         return false
     }
     return true
 }
 
-// check that the element is not in ignored elements 
+/**
+ * Check that the event is not in ignored events of the element
+ * 
+ * @param {Object} node element and event object
+ * @returns true events 
+ */
 const getValidEvents = async (node) => {
     let validEvents = [...new Set(
         node.events.map(event => event.type)
@@ -211,6 +250,16 @@ const getValidEvents = async (node) => {
     return validEvents
 }
 
+/**
+ * Test if two pages are different enough to justify a new page
+ * 
+ * @param {Page} originalPage puppeteer page object of origin
+ * @param {Page} eventPage puppeteer page object to test events
+ * @param {Object} rootElement element with the event
+ * @param {Number} tolerance when an event is initiated, how many elements (ancestors) changing qualifies a new page
+ * @param {Number} radius when an event is initiated, how many elements away (ancestors) should be checked
+ * @returns true or false
+ */
 async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=TOLERANCE, radius=RADIUS){
 
     async function checkNodes(originalPage, eventPage, rootElementID, tolerance, radius){
@@ -273,9 +322,22 @@ async function pagesDifferent(originalPage, eventPage, rootElement, tolerance=TO
     },rootElement.element.dataId)
     return await checkNodes(originalPage, eventPage, rootElement.element.dataId, tolerance, radius)
 }
+/**
+ * Set a program delay
+ * 
+ * @param {Number} milliseconds amount of milliseconds to delay
+ * @returns Promise
+ */
+function delay (milliseconds){
+    new Promise(res => setTimeout(res, milliseconds))
+}
 
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
+/**
+ * Execute an event
+ * 
+ * @param {ElementHandle} elementHandle puppeteer element handle object
+ * @param {String} event event to check
+ */
 const performEvent = async (elementHandle, event) => {
     switch(event){
         case String(event.match(/touch/g)):
@@ -293,6 +355,12 @@ const performEvent = async (elementHandle, event) => {
     await delay(WAIT_TIME)
 }
 
+/**
+ * Open a new page in puppeteer at the same place as the origin page
+ * 
+ * @param {Page} page old puppeteer page object
+ * @returns new page
+ */
 async function newPage(page){
     let page2 =await browser.newPage()
 
@@ -306,6 +374,12 @@ async function newPage(page){
     return page2
 }
 
+
+/**
+ * Refresh a page
+ * 
+ * @param {Page} page puppeteer page object to reload
+ */
 async function reloadPage(page){
     await page.reload()
 	

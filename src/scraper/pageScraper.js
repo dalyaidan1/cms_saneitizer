@@ -5,6 +5,13 @@ const DETECT_NON_RESTFUL = config['DETECT_NON_RESTFUL']
 let DOMAIN
 
 const scraperObject = {
+	/**
+	 * Scrape a website from the domain
+	 * 
+	 * @param {Browser} browser 
+	 * @param {String} domain 
+	 * @param {DatabaseAccessor} databaseAccessor 
+	 */
     async scraper(browser, domain, databaseAccessor){
         let [page] = await browser.pages()
 		await minimizeBrowser(page)
@@ -72,7 +79,6 @@ const scraperObject = {
 				urls = urls.map(url => url.replace(/www\./, ''))
 
 				// check that the domain is correct
-				// TODO: match against the correct type in the domain entered, ie... wwww, vs nothing, http bs https
 				urls = urls.filter(url => url.match(DOMAIN) !== null)
 
 				// make each url a new node...
