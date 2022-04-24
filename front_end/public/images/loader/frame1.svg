@@ -1,0 +1,50 @@
+<svg id="Basic_copy" data-name="Basic copy" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="446" height="668" viewBox="0 0 446 668">
+  <defs>
+    <style>
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke: #000;
+        fill-rule: evenodd;
+      }
+
+      .cls-1 {
+        stroke-linejoin: round;
+        fill: url(#linear-gradient);
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke-width: 2px;
+      }
+
+      .cls-2 {
+        fill: #868383;
+      }
+
+      .cls-3 {
+        fill: #8f8f8f;
+      }
+
+      .cls-4 {
+        fill: none;
+        stroke-width: 3px;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="222.422" y1="493" x2="222.422" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7e662e" stop-opacity="0.902"/>
+      <stop offset="1" stop-color="#c6ac6e"/>
+    </linearGradient>
+  </defs>
+  <g id="Ligh_Bulb" data-name="Ligh Bulb">
+    <g id="OG_Shape_copy" data-name="OG Shape copy">
+      <path class="cls-1" d="M222.416,8c119.029,0,215.521,96.492,215.521,215.521,0,33.074-8.829,72.4-28.937,104.479-35.013,55.857-90,97-90,97l-12,20-6,47s-69.7,1-79,1H139l-3-49-13.5-18.774S71.219,387.7,38,335C15.626,299.5,6.921,252.14,6.895,223.521,6.785,104.492,103.387,8,222.416,8Z"/>
+    </g>
+    <g id="Bottom">
+      <path id="Rectangle_3_copy_2" data-name="Rectangle 3 copy 2" class="cls-2" d="M304,492l-3,137.821c0,16.548-13.431,30.96-30,30.96l-100.077.213c-14.938-.167-28.934-14.624-28.923-31.173L138,494Z"/>
+      <path id="Rectangle_2_copy_3" data-name="Rectangle 2 copy 3" class="cls-3" d="M136.054,527.544l162.055-29.88a10.5,10.5,0,0,1,12.239,8.358l1.066,5.713a10.439,10.439,0,0,1-8.408,12.164l-162.055,29.88a10.5,10.5,0,0,1-12.239-8.357l-1.067-5.714A10.44,10.44,0,0,1,136.054,527.544Z"/>
+      <path id="Rectangle_2_copy_3-2" data-name="Rectangle 2 copy 3" class="cls-3" d="M136.054,566.3l162.055-29.879a10.5,10.5,0,0,1,12.239,8.357l1.066,5.714a10.44,10.44,0,0,1-8.408,12.164L140.951,592.54a10.494,10.494,0,0,1-12.239-8.357l-1.067-5.713A10.441,10.441,0,0,1,136.054,566.3Z"/>
+      <path id="Rectangle_2_copy_3-3" data-name="Rectangle 2 copy 3" class="cls-3" d="M138.054,608.048l162.055-29.879a10.5,10.5,0,0,1,12.239,8.357l1.066,5.713a10.44,10.44,0,0,1-8.408,12.165L142.951,634.283a10.494,10.494,0,0,1-12.239-8.357l-1.067-5.713A10.441,10.441,0,0,1,138.054,608.048Z"/>
+    </g>
+  </g>
+  <g id="Web">
+    <path class="cls-4" d="M222.494,204.729a26.729,26.729,0,1,1-26.4,27.211A26.811,26.811,0,0,1,222.494,204.729Z"/>
+  </g>
+</svg>
