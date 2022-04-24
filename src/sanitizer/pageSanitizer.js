@@ -1,6 +1,5 @@
 const sanitizeHTML = require('sanitize-html')
 const prettier = require('prettier')
-const fs  = require('fs')
 const jsdom = require('jsdom')
 const {JSDOM} = jsdom
 
@@ -47,10 +46,6 @@ function pageSanitizer(page, domain){
     
     page = pageToEdit.window.document.body.outerHTML
     
-    // remove ads
-    // npm package
-
-    // organize to template
 
     // beautify
     page = prettier.format(page, {parser:"html"})

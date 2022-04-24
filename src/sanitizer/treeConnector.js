@@ -1,5 +1,10 @@
-const neo4j = require('neo4j-driver')
-
+/**
+ * Strip a name back by a certain number of layers
+ * 
+ * @param {String} name name to strip
+ * @param {Number} number how many layers to strip the name
+ * @returns substring of name
+ */
 function stripNameLayerBy(name, number){
     // subtract 2 to account for http:// 
     const count = (name.match(/\//g) || []).length
@@ -12,15 +17,25 @@ function stripNameLayerBy(name, number){
 }
 
 const connectLayers = {
+    /**
+     * Connect all of the layers to form a tree
+     * 
+     * @param {DatabaseAccessor} databaseAccessor 
+     * @returns none
+     */
     async parseLayers(databaseAccessor) {
         console.log("Starting Final Connections......")
+        // bottom up
         const startLayer = await databaseAccessor.getMaxLayer();
+        /**
+         * Put all the nodes on a layer into a tree
+         * 
+         * @param {Number} layer layer to be operated on
+         * @returns true when finished a layer
+         */
         async function parseCurrentLayer(layer){
             const childLayerNodes = await databaseAccessor.getAllNodesFromLayer(layer)
-            // cant do this because it would needed to be updated every round
-            // const parentLayerNodes = await databaseAccessor.getAllNodesFromLayer(layer - 1)
 
-            // const childNodeURLs = childLayerNodes.map(node => node.url)
             for (let childNode in childLayerNodes){
                 let parentURL = stripNameLayerBy(childLayerNodes[childNode].properties.name, layer-1)
                 if (await databaseAccessor.isURLNewNode(parentURL)){
@@ -43,7 +58,7 @@ const connectLayers = {
                     }   
                 }
             }
-
+            // if not at the top of the tree yet
             if (layer-1 !== 0){
                 return parseCurrentLayer(layer-1)
             }
