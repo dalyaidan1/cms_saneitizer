@@ -7,6 +7,15 @@ const {
     escapeFilename,
 } = require('./generateHelpers')
 
+
+/**
+ * Make a new page
+ * 
+ * @param {Node} node neo4j node object
+ * @param {Boolean} makeDirectory export file structure
+ * @param {Boolean} forAdjustments export nav for show
+ * @param {Navigation} currentNav object containing nav for recursive descent
+ */
 async function newLink(node, makeDirectory, forAdjustments, currentNav){
 
     let properties = {
@@ -52,12 +61,21 @@ async function newLink(node, makeDirectory, forAdjustments, currentNav){
         ? `public/html${nodeName}`
         : `public/html${nodeName}.html`
         
-        let content = `${node.properties.title}\n<head/>${node.properties.content}`
+        let content = `<title>${node.properties.title}</title>\n<head/>${node.properties.content}`
 
         fs.writeFileSync(escapeFilename(filePathName), deScapeContent(content))
     }
 }
 
+/**
+ * Make a new directory
+ * 
+ * @param {Node} node neo4j node object
+ * @param {DatabaseAccessor} databaseAccessor object giving access to database transactions
+ * @param {Boolean} makeDirectory export file structure
+ * @param {Boolean} forAdjustments export nav for show
+ * @param {Navigation} currentNav object containing nav for recursive descent
+ */
 async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustments, currentNav){
     let tempLink = `<li>\n<span id=${node.properties.id}>${formatDirectoryTitle(node.properties.name)}</span>\n<ul>\n`
 
@@ -106,6 +124,16 @@ async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustment
     fs.appendFileSync(NAV_FILE, '</ul>\n</li>\n')
 }
 
+
+/**
+ * Make a new page or directory
+ * 
+ * @param {Node} node neo4j node object
+ * @param {DatabaseAccessor} databaseAccessor object giving access to database transactions
+ * @param {Boolean} makeDirectory export file structure
+ * @param {Boolean} forAdjustments export nav for show
+ * @param {Navigation} currentNav object containing nav for recursive descent
+ */
 async function generateLink(node, databaseAccessor, makeDirectory, forAdjustments, currentNav){
     let file = fs.readFileSync(NAV_FILE)
     let fileString = file.toString()

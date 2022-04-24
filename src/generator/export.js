@@ -4,15 +4,28 @@ const linkMaker = require("./generateLink")
 const jsdom = require('jsdom')
 const {JSDOM} = jsdom
 
-// open navigation.html
-// const navigation = fs.writeFileSync('../../public/html/navigation.html', JSON.stringify(pageTracker))
-// write first html, nav, and ul tags
 const exporter = {
+    /**
+     * Export the website from the database
+     * 
+     * @param {DatabaseAccessor} databaseAccessor object giving access to database transactions
+     * @param {Boolean} makeDirectory export file structure
+     * @param {Boolean} forAdjustments export nav for show
+     * @param {Navigation} currentNav object containing nav for recursive descent
+     * @returns none
+     */
     async generateExport(databaseAccessor, makeDirectory=false, forAdjustments, currentNav){
         const firstLayer = 0
-        // const lastLayer = await databaseAccessor.getMaxLayer();
+
+        // write first html, nav, and ul tags
         const firstNavParts = "<html>\n<nav>\n<ul>\n"
         fs.writeFileSync(NAV_FILE, firstNavParts)
+
+        /**
+         * Start the descending the tree structure from the database
+         * @param {Number} layer layer to start
+         * @returns none
+         */
         async function generateLayer(layer){
             if (layer <= 1){
                 const layerNodes = await databaseAccessor.getAllNodesFromLayer(layer)
@@ -22,7 +35,8 @@ const exporter = {
                 return generateLayer(layer+1)
             } else {
                 fs.appendFileSync(NAV_FILE, '</nav>')
-                // remove empties
+
+                // remove any empty nodes from the navigation
                 let navToEdit = new JSDOM((fs.readFileSync(NAV_FILE)).toString())
                 let spans = Array.from(navToEdit.window.document.querySelectorAll('span'))
                 for (let span of spans){
