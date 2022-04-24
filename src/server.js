@@ -58,6 +58,21 @@ app.get('/api/export/nav', async (req, res) => {
     
 })
 
+// start app route
+app.post('/api/adjust-node', async (req, res) => {
+    let decodedResponse = req.body
+    const {formatDomain} = require('./scraper/scraperHelpers')
+    const DatabaseAccessor = require('./database/databaseAccessor')
+    const config = require('./USER_CONFIG.json')
+    const domainHome = formatDomain(config.DOMAIN)
+    const databaseAccessor = await new DatabaseAccessor(driver, domainHome)
+    if (await databaseAccessor.updateNodeTitle(decodedResponse)){
+        res.send(true)
+    } else {
+        res.send(false)
+    }    
+})
+
 
 async function zip(){
     const AdmZip = require('adm-zip')

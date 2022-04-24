@@ -4,7 +4,6 @@ const treeConnector = require('./sanitizer/treeConnector')
 const exporter = require('./generator/export')
 const config = require('./USER_CONFIG.json')
 const {formatDomain} = require('./scraper/scraperHelpers')
-// TODO make sure that it does not have a "/" at the end
 const domainHome = formatDomain(config.DOMAIN)
 
 

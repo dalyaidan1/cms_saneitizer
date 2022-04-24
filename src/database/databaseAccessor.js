@@ -379,6 +379,20 @@ class DatabaseAccessor {
         })
     }
 
+    async updateNodeTitle(node){
+        let session = await this.driver.session()
+        await session.run(
+            `MATCH (page:Page {id: '${node.id}'})
+            SET page.title = '${node.title}'`
+        )
+        .catch(error => {
+            this.logError(error);
+            return false
+        })
+        .then(async () => await session.close())
+        return true
+    }
+
     async getNodeTypesFromURL(url){
         const name = this.helper.formatPageName(url, this.domainHome)
         let types = [""]
