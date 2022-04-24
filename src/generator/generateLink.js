@@ -52,9 +52,9 @@ async function newLink(node, makeDirectory, forAdjustments, currentNav){
         ? `public/html${nodeName}`
         : `public/html${nodeName}.html`
         
-        console.log(node.properties.url, nodeName, filePathName)
+        let content = `${node.properties.title}\n<head/>${node.properties.content}`
 
-        fs.writeFileSync(escapeFilename(filePathName), deScapeContent(node.properties.content))
+        fs.writeFileSync(escapeFilename(filePathName), deScapeContent(content))
     }
 }
 

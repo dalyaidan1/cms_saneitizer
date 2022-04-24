@@ -7,6 +7,68 @@ class DatabaseAccessor {
         this.domainHome = domainHome
     }
 
+
+    /**
+     * Set or create something on the database
+     * 
+     * @param {String} cypher string literal of query to send to the database
+     * @returns none
+     */
+    async writeOperation(cypher){
+        let session = await this.driver.session()
+        try{
+            await session.writeTransaction(async txc => {
+                let result = await txc
+                    .run(cypher)
+                return result
+            })
+            .catch(error => {
+                console.log(error)
+            })
+            .then(async () => await session.close())
+            return 
+        } catch(error){
+            console.log(error)
+        }
+    }
+
+    /**
+     * Get something on the database
+     * 
+     * @param {String} cypher string literal of query to send to the database
+     * @returns result of cypher
+     */
+    async readOperation(cypher){
+        let session = await this.driver.session()
+        let data;
+        try{
+            await session.readTransaction(async txc => {
+                let result = await txc
+                    .run(cypher)
+                return result
+            })
+            .then(result => {
+                data = result                
+            })
+            .catch(error => {
+                console.log(error)
+            })
+            .then(async () => await session.close())
+            return data
+
+        } catch(error){
+            console.log(error)
+            await session.close()
+        }
+    }
+
+    /**
+     * Insert a new Page node into the database
+     * 
+     * @param {Page} page 
+     * @param {*} options 
+     * @returns name of the inserted node
+     */
     async setNewPageNodeFromPage(page, options={}){
         const url = options["url"] === undefined
             ? await page.url()
@@ -43,33 +105,27 @@ class DatabaseAccessor {
             ? url
             : options["pre_shift_url"]
 
-        let session = await this.driver.session()
-        await session
-            .run(
+        await this.writeOperation(
                 `CREATE (page:Page {
                     name: '${name}',
                     id: randomUuid(),
                     url: '${url}',
-                    layer: $layer,
+                    layer: ${this.neo4j.int(layer)},
                     title: '${title}',
                     content: \'${content}\',
                     sanitized: ${sanitized},
-                    occurrences: $occurrences,
                     shift_page: ${shift_page},
                     pre_shift_url: '${pre_shift_url}'
-                })`, {
-                    layer: this.neo4j.int(layer),
-                    occurrences: this.neo4j.int(1)
-                })
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => {
-                await session.close()                                
-            })
+                })`)
         return name        
     }
 
+    /**
+     * Update an existing Page node into the database
+     * 
+     * @param {Page} page 
+     * @returns name of the updated node
+     */
     async updatePageNodeFromPage(page){
         const url = await page.url()
         
@@ -77,225 +133,98 @@ class DatabaseAccessor {
 
         let pageMatch;
 
-        let session = await this.driver.session()
-        // get the node already in the db
-        await session
-            .run(
+        // find the Page node with the matching name
+        await this.readOperation(
                 `MATCH (page:Page {name: '${name}'})
                 RETURN page AS page`)
-            .then(async result => {
+            .then(result => {
                 if (result.records === []){
-                        console.log(result)
+                    console.log(result)
                 }
                 pageMatch = result.records[0].get('page')                
             })
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => {
-                await session.close()                         
-            })
-        let session2 = await this.driver.session()
-        // if its sanitized just update its occurrences 
-        if (pageMatch.properties.sanitized){
-            await session2.run(
-                `MATCH (page:Page {name: '${name}'})
-                SET page.occurrences = $occurrences`, {
-                    occurrences: this.neo4j.int(pageMatch.occurrences + 1)
-                }
-            )
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => await session2.close())
-        } else {
-            // if not, need to update it
+        
+        // if page is not sanitized, it need to get updated
+        if (!pageMatch.properties.sanitized){
             const title = this.helper.sanitizeTitle(await this.helper.getTitle(page))
+            
             const content = this.sanitize(
                 await page.$eval('body', content => content.outerHTML),
                 this.domainHome
                 )
+
             let sanitized = false
+
             if (content.length !== 0){
                 sanitized = true
             }
-            await session2.run(
+
+            await this.writeOperation(
                 `MATCH (page:Page {name: '${name}'})
                 SET page.title = '${title}',
                     page.content = \'${content}\',
-                    page.sanitized = ${sanitized},
-                    page.occurrences = $occurrences`, {
-                    occurrences: this.neo4j.int(pageMatch.occurrences + 1)
-                }
+                    page.sanitized = ${sanitized}`
             )
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => await session2.close() )
         }            
         return page.name
     }
 
-    async setNewPageNodeFromURL(url, outerPageURL = null){
-        // const url = await page.url()
-
+    /**
+     * Set an initial Page node, with some missing properties
+     * 
+     * @param {String} url exact URL of the page to be inserted
+     * @returns name of inserted node
+     */
+    async setNewPageNodeFromURL(url){
         const name = this.helper.formatPageName(url, this.domainHome)
 
         const layer = this.helper.getLayer(name)
 
-        let session = await this.driver.session()
-        // set the page props
-        await session
-            .run(
+        await this.writeOperation(
                 `CREATE (page:Page {
                     name: '${name}',
                     id: randomUuid(),
                     url: '${url}',
-                    layer: $layer,
+                    layer: ${this.neo4j.int(layer)},
                     title: '',
                     content: '',
-                    sanitized: false,
-                    occurrences: $occurrences
-                })`, {
-                    layer: this.neo4j.int(layer),
-                    occurrences: this.neo4j.int(1)
-            })
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => {
-                await session.close()                                               
-            })
-            // if setting an inner page
-            if (outerPageURL !== null){
-                const outerPageName = this.helper.formatPageName(outerPageURL, this.domainHome)
-                let session2 = await this.driver.session()
-                if (this.helper.layerIsAChildOfOtherLayer(url, outerPageURL)){
-                    await session2.run(
-                        `MATCH 
-                            (innerPage:Page),
-                            (outerPage:Page)
-                        WHERE 
-                            innerPage.name = '${name}' 
-                            AND outerPage.name = '${outerPageName}'
-                        CREATE (innerPage)-[:PARENT]->(outerPage),
-                            (outerPage)-[:CHILD]->(innerPage)
-                        `
-                    )
-                    .catch(error => {
-                        this.logError(error, url);
-                    })
-                } 
-                // else {
-                //     await session2.run(
-                //         `MATCH 
-                //             (innerPage:Page),
-                //             (outerPage:Page)
-                //         WHERE 
-                //             innerPage.name = '${name}'
-                //             AND outerPage.name = '${outerPageName}'
-                //         CREATE (outerPage)-[:LINKS_TO]->(innerPage)`
-                //     )
-                //     .catch(error => {
-                //         this.logError(error, url);
-                //     })
-                // }
-                await session2.close()                    
-            } 
+                    sanitized: false
+                })`)        
         return name
     }
 
-    async updatePageNodeOccurrences(url, outerPageURL = null){
-        const name = this.helper.formatPageName(url, this.domainHome)
-        let session = await this.driver.session()
-        await session
-            .run(
-                `MATCH (page:Page {name: '${name}'})
-                SET page.occurrences = page.occurrences + 1`
-            )
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => {
-                await session.close()                
-            })
-            // if setting an inner page
-            // if (outerPageURL !== null){
-            //     let session2 = await this.driver.session()
-            //     const outerPageName = this.helper.removeDomainFromURL(outerPageURL, this.domainHome)
-            //     await session2.run(
-            //         `MATCH 
-            //             (innerPage:Page),
-            //             (outerPage:Page)
-            //         WHERE 
-            //             innerPage.name = '${name}' 
-            //             AND outerPage.name = '${outerPageName}'
-            //         CREATE (outerPage)-[:LINKS_TO]->(innerPage)
-            //         `
-            //     )
-            //     .catch(error => {
-            //         this.logError(error, url);
-            //     })
-            //     await session2.close()
-            // } 
-    }
-
+    /**
+     * Set a new Directory node. Must have a child to be a valid directory
+     * 
+     * @param {String} childURL exact URL of the child 
+     * @param {String} parentURL exact URL of the directory
+     */
     async setNewDirectoryNodeFromURL(childURL, parentURL){
         const parentName = this.helper.removeDomainFromURL(parentURL, this.domainHome)
         const layer = this.helper.getLayer(parentName)
 
-        let session = await this.driver.session()
-        // set the page props
-        await session
-            .run(
+        await this.writeOperation(
                 `CREATE (dir:Directory {
                     name: '${parentName}',
                     id: randomUuid(),
                     url: '${parentURL}',
-                    layer: $layer
-                })`, {
-                    layer: this.neo4j.int(layer)
-            })
-            .catch(error => {
-                this.logError(error, childURL);
-            })
-            .then(async () => {
-                await session.close()                                               
-            })
+                    layer: ${this.neo4j.int(layer)}
+                })`)
         await this.updateNodeRelationship(childURL, parentURL)
     }
 
-    async convertPageNodeToRedirectFromURL(startURL, endURL){
-        const startName = this.helper.formatPageName(startURL, this.domainHome)
-        const endName = this.helper.formatPageName(endURL, this.domainHome)
-
-        let session = await this.driver.session()
-        // set the page props
-        await session
-            .run(
-                `MATCH (startPage:Page {name: '${startName}'}),
-                (endPage:Page {name: '${endName}'})
-                REMOVE startPage:Page
-                SET startPage:Redirect,
-                startPage.sanitized = true
-                CREATE (startPage)-[:REDIRECTS]->(endPage)`
-            )
-            .catch(error => {
-                this.logError(error, startURL);
-            })
-            .then(async () => {
-                await session.close()                                               
-            })
-    }
-
+    
+    /**
+     * Set a new Redirect node
+     * 
+     * @param {String} startURL exact URL of the origin URL
+     * @param {String} endURL exact URL of the destination URL 
+     */
     async addRedirectNode(startURL, endURL){
         const startName = this.helper.formatPageName(startURL, this.domainHome)
         const endName = this.helper.formatPageName(endURL, this.domainHome)
 
-        let session = await this.driver.session()
-        // set the page props
-        await session
-            .run(
+        await this.writeOperation(
                 `MATCH (endPage:Page {name: '${endName}'})
                 CREATE (startPage:Redirects {
                     name: '${startName}',
@@ -303,65 +232,54 @@ class DatabaseAccessor {
                     layer: endPage.layer
                 })-[:REDIRECTS]->(endPage)`
             )
-            .catch(error => {
-                this.logError(error, startURL);
-            })
-            .then(async () => {
-                await session.close()                                               
-            })
     }
 
-
+    /**
+     * Get the highest layer number that any node has
+     * @returns max layer number
+     */
     async getMaxLayer(){
         let max = 0
-        let session = await this.driver.session()
-        await session
-            .run(
+        await this.readOperation(
                 `MATCH (node) 
                 RETURN toInteger(max(node.layer)) as layer
                 `)
             .then(result => {
                 max = result.records[0].get('layer').toNumber()
             })
-            .catch(error => {
-                this.logError(error);
-            })
-            .then(async () => {
-                await session.close()                
-            }) 
         return max 
     }
 
+    /**
+     * Get all the nodes that contain a matching layer number in their properties
+     * @param {Number} layer 
+     * @returns all match nodes
+     */
     async getAllNodesFromLayer(layer){
         let layers = []
-        let session = await this.driver.session()
-        await session
-            .run(
+        await this.readOperation(
                 `MATCH (nodes)
-                WHERE nodes.layer = $layerNumber
-                RETURN nodes`, {
-                    layerNumber: this.neo4j.int(layer)
-                })
+                WHERE nodes.layer = ${this.neo4j.int(layer)}
+                RETURN nodes`)
             .then(result => {
                 layers = result.records.map(node => {
                     return node.get('nodes')
                 })
             })
-            .catch(error => {
-                this.logError(error);
-            })
-            .then(async () => {
-                await session.close()                
-            }) 
         return layers 
     }
 
-
+    /**
+     * Set a parent and child relationship between any kind of node and a Directory node
+     * 
+     * @param {String} childURL exact URL of the child 
+     * @param {String} parentURL exact URL of the parent Directory
+     */
     async updateNodeRelationship(childURL, parentURL){
         const childName = this.helper.formatPageName(childURL, this.domainHome)
         const parentName = this.helper.formatPageName(parentURL, this.domainHome)
-        let session = await this.driver.session()
-        await session.run(
+        
+        await this.writeOperation(
             `MATCH 
                 (childNode),
                 (parentNode:Directory)
@@ -371,34 +289,33 @@ class DatabaseAccessor {
             CREATE (childNode)-[:PARENT]->(parentNode),
                 (parentNode)-[:CHILD]->(childNode)`
         )
-        .catch(error => {
-            this.logError(error, childURL);
-        })
-        .then(async () => {
-            await session.close()
-        })
     }
 
+    /**
+     * Update the title property of an existing Page node
+     * 
+     * @param {String} node id property of node
+     * @returns true
+     */
     async updateNodeTitle(node){
-        let session = await this.driver.session()
-        await session.run(
+        await this.writeOperation(
             `MATCH (page:Page {id: '${node.id}'})
             SET page.title = '${node.title}'`
         )
-        .catch(error => {
-            this.logError(error);
-            return false
-        })
-        .then(async () => await session.close())
         return true
     }
 
+    /**
+     * Get the initial label of a node
+     * 
+     * @param {String} url exact URL of node
+     * @returns the first label on a node
+     */
     async getNodeTypesFromURL(url){
         const name = this.helper.formatPageName(url, this.domainHome)
         let types = [""]
-        let session = await this.driver.session()
-        await session
-            .run(
+
+        await this.readOperation(
                 `OPTIONAL MATCH (node {name: '${name}'})
                 RETURN labels(node) AS labels`)
             .then(result => {
@@ -406,23 +323,19 @@ class DatabaseAccessor {
                     return label.get('labels')[0]
                 })
             })
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => {
-                await session.close()                
-            }) 
         return types 
     }
 
-    // check if a url is already in the tracking oject
-    // returns true or false
+    /**
+     * Check if a node is already in the database
+     * 
+     * @param {String} url exact URL of node
+     * @returns true or false
+     */
     async isURLNewNode(url) {
         const name = this.helper.formatPageName(url, this.domainHome)
         let newNode = false
-        let session = await this.driver.session()
-        await session
-            .run(
+        await this.readOperation(
                 `OPTIONAL MATCH (node {name: '${name}'})
                 RETURN node AS node`)
             .then(result => {
@@ -431,22 +344,19 @@ class DatabaseAccessor {
                     newNode = true
                 }
             })
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => {
-                await session.close()                
-            }) 
         return newNode 
     }
 
-
+    /**
+     * Check if a nodes sanitized property is true or false
+     * 
+     * @param {String} url exact URL of node
+     * @returns true or false
+     */
     async pageSanitized(url){
         const name = this.helper.formatPageName(url, this.domainHome)
         let sanitized = false
-        let session = await this.driver.session()
-        await session
-            .run(
+        await this.readOperation(
                 `OPTIONAL MATCH (page {name: '${name}'})
                 RETURN page.sanitized AS sanitized`)
             .then(result => {
@@ -454,21 +364,18 @@ class DatabaseAccessor {
                     sanitized = true
                 }
             })
-            .catch(error => {
-                this.logError(error, url);
-            })
-            .then(async () => {
-                await session.close()                
-            }) 
-        // console.log(sanitized)
         return sanitized
     }
 
+    /**
+     * Get all the nodes one child layer down from a node
+     * 
+     * @param {String} nodeName formatted name property of node
+     * @returns list of nodes
+     */
     async getNodeChildren(nodeName){
-        let session = await this.driver.session()
         let children
-        await session
-            .run(
+        await this.readOperation(
                 `OPTIONAL MATCH (p)-[:CHILD]->(c) 
                 WHERE p.name = "${nodeName}" 
                 RETURN c`)
@@ -479,22 +386,7 @@ class DatabaseAccessor {
                     })
                 }
             })
-            .catch(error => {
-                this.logError(error, nodeName);
-            })
-            .then(async () => {
-                await session.close()                
-            }) 
         return children
-    }
-
-    logError(error, url){
-        console.log(url, error)        
-        // setTimeout( () => {
-        //     console.log(error)
-        //     console.log(`5s pass`)
-        // }, 5000);
-        process.exit()
     }
 
 }

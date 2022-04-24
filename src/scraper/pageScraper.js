@@ -77,11 +77,9 @@ const scraperObject = {
 
 				// make each url a new node...
 				for (let url in urls){
-					// const innerPageName = databaseAccessor.removeDomainFromURL(url)						
 					if (await databaseAccessor.isURLNewNode(urls[url])){
 						await databaseAccessor.setNewPageNodeFromURL(urls[url], realOuterURL)
 					} else {
-						// await databaseAccessor.updatePageNodeOccurrences(urls[url], realOuterURL)
 						urls[url] = undefined						
 					}
 				}
