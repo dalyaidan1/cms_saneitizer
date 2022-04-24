@@ -1,5 +1,12 @@
 const config = require('../USER_CONFIG.json')
 
+/**
+ * Check if one page is the child of another
+ * 
+ * @param {String} innerPageURL 
+ * @param {String} outerPageURL 
+ * @returns true or false
+ */
 function layerIsAChildOfOtherLayer(innerPageURL, outerPageURL){
     let match = false
 
@@ -21,6 +28,13 @@ function layerIsAChildOfOtherLayer(innerPageURL, outerPageURL){
     return match
 }
 
+
+/**
+ * Get the layer of a page
+ * 
+ * @param {String} url 
+ * @returns layer number 
+ */
 function getLayer(url){
     // remove the protocol as it contains two forward slashes
     url = url.replace(/http:\/\/|https:\/\//g, '')
@@ -35,15 +49,27 @@ function getLayer(url){
     return count
 }
 
+/**
+ * Prep a title to be stored in the database
+ * 
+ * @param {String} title 
+ * @returns title
+ */
 function sanitizeTitle(title){
     title = String(title.replace(/\'/g, `\\'`))
     title = String(title.replace(/\"/g, `\\"`))
     return title
 }
 
-// regex a url to remove the domain, so key lookup is a tiny bit faster and less cluttered
+
+/**
+ * Remove the domain from a URL
+ * 
+ * @param {String} url full URL
+ * @param {String} domainHome protocol and domain to be removed
+ * @returns name
+ */
 function removeDomainFromURL(url, domainHome){
-    // console.log(url);
     if (domainHome.match(/http:\/\//) !== null){
         if (url.match(/http:\/\//) === null){
             domainHome = domainHome.replace(/http:\/\//, 'https:\/\/')
@@ -61,19 +87,25 @@ function removeDomainFromURL(url, domainHome){
     return url.replace(domainHome, '')
 }
 
+/**
+ * Format a name for the database from a URL
+ * 
+ * @param {String} url full URL to be converted to a name
+ * @param {String} domainHome protocol and domain to be removed
+ * @returns 
+ */
 function formatPageName(url, domainHome){
     url = url.replace(/www\./, '')
     url = removeDomainFromURL(url, domainHome)
-    // if (url !== ''){
-    //     url = url.replace(/\/$/, '')
-    // }
-    // if (url.match(/\/$/) === null){
-    //     url = `${url}/`
-    // }
-
     return url
 }
 
+/**
+ * Calculate the title for a Page
+ * 
+ * @param {Page} page puppeteer page object
+ * @returns title
+ */
 async function getTitle(page){
     const titleConfig = config.DRAW_PAGE_TITLE_FROM
     if (titleConfig.title){
