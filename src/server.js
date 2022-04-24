@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const driver = require('./database/neo4jDriver')
+const fs = require('fs')
 const Navigation = require('./generator/navigation')
 const currentNav = new Navigation()
 
@@ -19,21 +20,13 @@ app.listen(process.env.BACK_END_PORT);
 (async () => {
     const appBrowserObject = require('./scraper/browser')
     let appBrowser = await appBrowserObject.startFrontBrowser()
-    let [page] = await appBrowser.pages()
+    let [page] = await appBrowser.pages()   
     await page.setViewport({ width: 0, height: 0 })
 })()
 
 
-
-// home page route
-app.get('/', function (req, res) {
-    res.send('Hello World')
-  })
-
-
 // start app route
 app.post('/api/start', async (req, res) => {
-    const fs = require('fs')
     let decodedResponse = req.body
     if (decodedResponse.data.start){
         let config = await writeConfig(decodedResponse.data)
@@ -50,7 +43,7 @@ app.post('/api/start', async (req, res) => {
 })
 
 
-// start app route
+// export nav route
 app.get('/api/export/nav', async (req, res) => {
     await exportData(true, false)
     await zip()
@@ -58,7 +51,14 @@ app.get('/api/export/nav', async (req, res) => {
     
 })
 
-// start app route
+
+// get current nav
+app.get('/api/nav', async (req, res) => {
+    let data = (fs.readFileSync('./public/html/navigation.html')).toString()
+    res.send({"data":data})
+})
+
+// adjust node route
 app.post('/api/adjust-node', async (req, res) => {
     let decodedResponse = req.body
     const {formatDomain} = require('./scraper/scraperHelpers')
@@ -66,7 +66,7 @@ app.post('/api/adjust-node', async (req, res) => {
     const config = require('./USER_CONFIG.json')
     const domainHome = formatDomain(config.DOMAIN)
     const databaseAccessor = await new DatabaseAccessor(driver, domainHome)
-    if (await databaseAccessor.updateNodeTitle(decodedResponse)){
+    if (await databaseAccessor.updateNodeTitle(decodedResponse.data)){
         res.send(true)
     } else {
         res.send(false)

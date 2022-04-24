@@ -23,7 +23,7 @@ async function newLink(node, makeDirectory, forAdjustments, currentNav){
     let tempLink = `<li><a href="${formatAnchorURL(node.properties.name)}.html">${formatAnchorURL(node.properties.title)}</a></li>\n`
     if (forAdjustments){
         tempLink = `<li data-cmss-name=${node.properties.name}>
-            <button onClick="setView(&quot;${JSON.stringify(properties).replace(/"/g, "'")}&quot;)">
+            <button onClick="window.setView(&quot;${JSON.stringify(properties).replace(/"/g, "'")}&quot;)">
             ${formatAnchorURL(node.properties.title)}
             </button></li>\n`        
     }
@@ -67,7 +67,7 @@ async function newDirectory(node, databaseAccessor, makeDirectory, forAdjustment
 
     if (forAdjustments){
         tempLink = `<li>\n
-             <button onClick="setView(&quot;${JSON.stringify(properties).replace(/"/g, "'")}&quot;)">
+             <button onClick="window.setView(&quot;${JSON.stringify(properties).replace(/"/g, "'")}&quot;)">
                 <span id=${node.properties.id}>${formatDirectoryTitle(node.properties.name)}</span>\n
             </button>
         <ul>\n`
