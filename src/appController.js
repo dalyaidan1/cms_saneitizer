@@ -15,6 +15,8 @@ async function scrapeAll(browserInstance, databaseDriver){
 
 		const databaseAccessor = await new DatabaseAccessor(databaseDriver, domainHome)		
 
+		await databaseAccessor.clearDatabase()
+
 		const scrapeTimeStart = Date.now()
 		await pageScraper.scraper(browser, domainHome, databaseAccessor)
 		let timeEnd = Date.now()

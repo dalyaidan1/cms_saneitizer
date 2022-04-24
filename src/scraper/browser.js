@@ -6,7 +6,6 @@ async function startBrowser(){
 	    console.log("Opening the browser......")
 	    browser = await puppeteer.launch({
 	        headless: false,
-			// executablePath: '/usr/bin/chromium-browser',
 			devtools:true,
 	        args: ["--disable-setuid-sandbox", "--no-sandbox"],
 	        'ignoreHTTPSErrors': true
@@ -24,7 +23,7 @@ async function startFrontBrowser(){
 	    browser = await puppeteer.launch({
 	        headless: false,
 			defaultViewport: null,
-	        args: ["--start-maximized", "--no-default-browser-check", "--no-sandbox", "-test-type", `--app=${process.env.FRONT_END_URL_PROD}`],
+	        args: ["--start-maximized", "--no-default-browser-check", "--no-sandbox", "-test-type", `--app=${process.env.FRONT_END_URL}`],
 			ignoreDefaultArgs: ["--enable-automation"],
 	        'ignoreHTTPSErrors': true
 	    })

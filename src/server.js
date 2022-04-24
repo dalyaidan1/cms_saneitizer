@@ -23,6 +23,11 @@ app.listen(process.env.BACK_END_PORT);
     let appBrowser = await appBrowserObject.startFrontBrowser()
     let [page] = await appBrowser.pages()   
     await page.setViewport({ width: 0, height: 0 })
+    appBrowser.on('disconnected', () => {
+        console.log('Closing......')
+        driver.close()
+        process.exit()
+    })
 })()
 
 

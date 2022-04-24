@@ -17,6 +17,10 @@ const exporter = {
     async generateExport(databaseAccessor, makeDirectory=false, forAdjustments, currentNav){
         const firstLayer = 0
 
+        //clear old data
+        fs.rmSync('public/', { recursive: true, force: true })
+        fs.mkdirSync(`public/html`, { recursive: true })
+
         // write first html, nav, and ul tags
         const firstNavParts = "<html>\n<nav>\n<ul>\n"
         fs.writeFileSync(NAV_FILE, firstNavParts)

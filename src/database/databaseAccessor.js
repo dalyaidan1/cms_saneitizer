@@ -389,5 +389,15 @@ class DatabaseAccessor {
         return children
     }
 
+    /**
+     * Clear entire database
+     */
+    async clearDatabase(){
+        await this.writeOperation(`
+            MATCH (n)
+            DETACH DELETE n
+        `)
+    }
+
 }
 module.exports = DatabaseAccessor
